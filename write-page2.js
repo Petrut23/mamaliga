@@ -1,4 +1,6 @@
-import { auth, signOut } from "@/auth"
+const fs = require('fs')
+
+const content = `import { auth, signOut } from "@/auth"
 import { redirect } from "next/navigation"
 
 export default async function HomePage() {
@@ -38,4 +40,7 @@ export default async function HomePage() {
       </div>
     </div>
   )
-}
+}`
+
+fs.writeFileSync('app/page.tsx', content)
+console.log('Gata!')
