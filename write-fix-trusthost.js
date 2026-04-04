@@ -1,0 +1,5 @@
+const fs = require('fs')
+let content = fs.readFileSync('pages/api/auth/[...nextauth].ts', 'utf8')
+content = content.replace('  trustHost: true,\n', '')
+fs.writeFileSync('pages/api/auth/[...nextauth].ts', content)
+console.log('Gata!')
