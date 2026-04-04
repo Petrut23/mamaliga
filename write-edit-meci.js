@@ -1,4 +1,6 @@
-"use client"
+const fs = require('fs')
+
+const content = `"use client"
 import { useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 import { Suspense } from "react"
@@ -233,4 +235,7 @@ function MeciuriContent() {
 
 export default function AdminMeciuriPage() {
   return <Suspense><MeciuriContent /></Suspense>
-}
+}`
+
+fs.writeFileSync('app/admin/meciuri/page.tsx', content)
+console.log('Gata!')

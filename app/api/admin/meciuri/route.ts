@@ -24,3 +24,11 @@ export async function DELETE(req: NextRequest) {
   await prisma.match.delete({ where: { id } })
   return NextResponse.json({ ok: true })
 }
+export async function PATCH(req: NextRequest) {
+  const { id, homeTeam, awayTeam, competitionName, kickoffAt } = await req.json()
+  const meci = await prisma.match.update({
+    where: { id },
+    data: { homeTeam, awayTeam, competitionName, kickoffAt: new Date(kickoffAt) }
+  })
+  return NextResponse.json({ meci })
+}
