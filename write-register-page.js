@@ -1,4 +1,6 @@
-"use client"
+const fs = require('fs')
+
+const content = `"use client"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
@@ -101,4 +103,7 @@ export default function RegisterPage() {
       </div>
     </div>
   )
-}
+}`
+
+fs.writeFileSync('app/register/page.tsx', content)
+console.log('Gata!')
