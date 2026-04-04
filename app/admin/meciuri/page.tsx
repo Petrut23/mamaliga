@@ -14,16 +14,16 @@ const COMPETITION_FLAGS: any = {
 
 function MeciuriContent() {
   const searchParams = useSearchParams()
-  const roundId = searchParams.get("roundId") || ""
-  const [meciuri, setMeciuri] = useState([])
-  const [etape, setEtape] = useState([])
+  const roundId = searchParams?.get("roundId") || ""
+  const [meciuri, setMeciuri] = useState<any[]>([])
+  const [etape, setEtape] = useState<any[]>([])
   const [selectedRound, setSelectedRound] = useState(roundId)
   const [loading, setLoading] = useState(false)
   const [importLoading, setImportLoading] = useState(false)
   const [showImport, setShowImport] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [msg, setMsg] = useState("")
-  const [availableMatches, setAvailableMatches] = useState([])
+  const [availableMatches, setAvailableMatches] = useState<any[]>([])
   const [selectedMatches, setSelectedMatches] = useState<string[]>([])
   const [dateFrom, setDateFrom] = useState("")
   const [dateTo, setDateTo] = useState("")
