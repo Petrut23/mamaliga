@@ -1,4 +1,6 @@
-"use client"
+const fs = require('fs')
+
+const content = `"use client"
 
 import { useState } from "react"
 import { signIn } from "next-auth/react"
@@ -88,4 +90,7 @@ export default function LoginPage() {
       </div>
     </div>
   )
-}
+}`
+
+fs.writeFileSync('app/login/page.tsx', content)
+console.log('Gata!')
