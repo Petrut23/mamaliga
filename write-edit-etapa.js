@@ -1,4 +1,6 @@
-"use client"
+const fs = require('fs')
+
+const content = `"use client"
 import { useState, useEffect } from "react"
 
 export default function AdminEtapePage() {
@@ -68,7 +70,7 @@ export default function AdminEtapePage() {
 
   async function deleteEtapa(id: string) {
     if (!confirm("Sigur vrei sa stergi aceasta etapa?")) return
-    const res = await fetch(`/api/admin/etape?id=${id}`, { method: "DELETE" })
+    const res = await fetch(\`/api/admin/etape?id=\${id}\`, { method: "DELETE" })
     if (res.ok) {
       setEtape((prev: any) => prev.filter((e: any) => e.id !== id))
       setMsg("Etapa stearsa!")
@@ -159,7 +161,7 @@ export default function AdminEtapePage() {
                   <div className="text-sm text-gray-500 mt-0.5">Deadline: {new Date(etapa.deadlineAt).toLocaleString("ro-RO")} · {etapa._count?.matches || 0} meciuri</div>
                 </div>
                 <div className="flex items-center gap-3 flex-wrap">
-                  <span className={`text-xs font-bold px-3 py-1 rounded-full border ${statusColors[etapa.status]}`}>{etapa.status}</span>
+                  <span className={\`text-xs font-bold px-3 py-1 rounded-full border \${statusColors[etapa.status]}\`}>{etapa.status}</span>
                   <select value={etapa.status} onChange={e => updateStatus(etapa.id, e.target.value)} className="bg-[#0a0d14] border border-[#1e2640] text-gray-400 text-xs rounded-lg px-2 py-1">
                     <option value="DRAFT">DRAFT</option>
                     <option value="OPEN">OPEN</option>
@@ -168,7 +170,7 @@ export default function AdminEtapePage() {
                     <option value="COMPLETED">COMPLETED</option>
                   </select>
                   <button onClick={() => startEdit(etapa)} className="text-xs bg-[#3b82f6]/10 text-[#3b82f6] border border-[#3b82f6]/20 px-3 py-1 rounded-lg hover:bg-[#3b82f6]/20 transition-colors">Edit</button>
-                  <a href={`/admin/meciuri?roundId=${etapa.id}`} className="text-xs bg-[#e8ff47]/10 text-[#e8ff47] border border-[#e8ff47]/20 px-3 py-1 rounded-lg hover:bg-[#e8ff47]/20">Meciuri</a>
+                  <a href={\`/admin/meciuri?roundId=\${etapa.id}\`} className="text-xs bg-[#e8ff47]/10 text-[#e8ff47] border border-[#e8ff47]/20 px-3 py-1 rounded-lg hover:bg-[#e8ff47]/20">Meciuri</a>
                   <button onClick={() => deleteEtapa(etapa.id)} className="text-xs bg-red-500/10 text-red-400 border border-red-500/20 px-3 py-1 rounded-lg hover:bg-red-500/20 transition-colors">Sterge</button>
                 </div>
               </div>
@@ -178,4 +180,7 @@ export default function AdminEtapePage() {
       </div>
     </div>
   )
-}
+}`
+
+fs.writeFileSync('app/admin/etape/page.tsx', content)
+console.log('Gata!')
