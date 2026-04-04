@@ -4,8 +4,8 @@ import { useRouter } from "next/navigation"
 
 export default function AdminEtapePage() {
   const router = useRouter()
-  const [etape, setEtape] = useState([])
-  const [sezoane, setSezoane] = useState([])
+  const [etape, setEtape] = useState<any[]>([])
+  const [sezoane, setSezoane] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ seasonId: "", roundNumber: "", title: "", deadlineAt: "" })
