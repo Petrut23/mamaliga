@@ -40,7 +40,7 @@ export default function LivePage() {
 
   useEffect(() => {
     fetchData()
-    const interval = setInterval(fetchData, 5 * 60 * 1000)
+    const interval = setInterval(fetchData, 10 * 60 * 1000)
     return () => clearInterval(interval)
   }, [fetchData])
 
