@@ -1,4 +1,6 @@
-import { NextResponse } from "next/server"
+const fs = require('fs')
+
+const content = `import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 export const dynamic = "force-dynamic"
 
@@ -32,7 +34,7 @@ async function syncFootballData() {
     if (!compCode || !match.externalApiId) continue
     try {
       const res = await fetch(
-        `https://api.football-data.org/v4/matches/${match.externalApiId}`,
+        \`https://api.football-data.org/v4/matches/\${match.externalApiId}\`,
         { headers: { "X-Auth-Token": process.env.FOOTBALL_DATA_API_KEY || "" } }
       )
       const data = await res.json()
@@ -78,8 +80,8 @@ async function syncLiga1() {
     if (!match.externalApiId) continue
     try {
       const res = await fetch(
-        `https://sports.bzzoiro.com/api/events/${match.externalApiId}/`,
-        { headers: { "Authorization": `Token ${process.env.BZZOIRO_API_KEY || ""}` } }
+        \`https://sports.bzzoiro.com/api/events/\${match.externalApiId}/\`,
+        { headers: { "Authorization": \`Token \${process.env.BZZOIRO_API_KEY || ""}\` } }
       )
       const data = await res.json()
       if (!data.id) continue
@@ -186,4 +188,7 @@ export async function GET() {
     console.error("Eroare sync:", err)
     return NextResponse.json({ error: err.message }, { status: 500 })
   }
-}
+}`
+
+fs.writeFileSync('app/api/admin/sync-scoruri/route.ts', content)
+console.log('Gata!')
