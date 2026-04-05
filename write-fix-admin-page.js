@@ -1,4 +1,6 @@
-import { getServerSession } from "next-auth"
+const fs = require('fs')
+
+const content = `import { getServerSession } from "next-auth"
 import { redirect } from "next/navigation"
 import { authOptions } from "@/pages/api/auth/[...nextauth]"
 import SyncButton from "./SyncButton"
@@ -48,4 +50,7 @@ export default async function AdminPage() {
       </div>
     </div>
   )
-}
+}`
+
+fs.writeFileSync('app/admin/page.tsx', content)
+console.log('Gata!')
