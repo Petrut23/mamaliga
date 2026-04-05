@@ -1,4 +1,6 @@
-import { NextResponse } from "next/server"
+const fs = require('fs')
+
+const content = `import { NextResponse } from "next/server"
 import { PrismaClient } from "@prisma/client"
 export const dynamic = "force-dynamic"
 const prisma = new PrismaClient()
@@ -67,4 +69,7 @@ export async function GET() {
     console.error("Eroare live API:", err)
     return NextResponse.json({ error: err.message }, { status: 500 })
   }
-}
+}`
+
+fs.writeFileSync('app/api/live/route.ts', content)
+console.log('Gata!')
