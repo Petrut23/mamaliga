@@ -5,23 +5,9 @@ import { authOptions } from "@/pages/api/auth/[...nextauth]"
 export default async function HomePage() {
   const session = await getServerSession(authOptions)
   if (!session) redirect("/login")
-  
-  const isAdmin = (session.user as any).role === "ADMIN" || (session.user as any).role === "SUPER_ADMIN"
 
   return (
     <div className="min-h-screen bg-[#0a0d14] text-white">
-      <nav className="bg-[#111520] border-b border-[#1e2640] px-6 h-14 flex items-center justify-between">
-        <div className="text-2xl font-black tracking-widest">Mama<span className="text-[#e8ff47]">LIGA</span></div>
-        <div className="flex items-center gap-3">
-          <span className="text-gray-400 text-sm">{session.user?.name}</span>
-          {isAdmin && (
-            <a href="/admin" className="text-xs font-bold px-3 py-1.5 rounded-lg bg-[#e8ff47]/10 border border-[#e8ff47]/30 text-[#e8ff47] hover:bg-[#e8ff47]/20 transition-colors">
-              Admin
-            </a>
-          )}
-          <a href="/api/auth/signout" className="text-xs font-semibold text-gray-500 hover:text-white transition-colors">Ieși</a>
-        </div>
-      </nav>
       <div className="max-w-4xl mx-auto px-6 py-16 text-center">
         <h1 className="text-6xl font-black tracking-wide mb-4">Bine ai venit, <span className="text-[#e8ff47]">{session.user?.name}!</span></h1>
         <p className="text-gray-400 text-lg mb-12">Prezici scorurile, alegi meciul căpitan și urmărești live cum urci în clasament.</p>

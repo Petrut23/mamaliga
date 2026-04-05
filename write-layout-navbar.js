@@ -1,4 +1,6 @@
-import type { Metadata } from "next"
+const fs = require('fs')
+
+const layout = `import type { Metadata } from "next"
 import { Geist } from "next/font/google"
 import "./globals.css"
 import { Providers } from "./providers"
@@ -22,4 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </body>
     </html>
   )
-}
+}`
+
+fs.writeFileSync('app/layout.tsx', layout)
+console.log('Gata!')
