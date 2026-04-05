@@ -179,6 +179,7 @@ async function calculeazaToatePunctele() {
 
 export async function GET() {
   try {
+    await autoLockEtape()
     await syncFootballData()
     await syncLiga1()
     await calculeazaToatePunctele()
@@ -201,6 +202,18 @@ async function autoCompleteEtape() {
     if (allFinished) {
       await prisma.round.update({ where: { id: round.id }, data: { status: "COMPLETED" } })
       console.log("Etapa completata automat:", round.id)
+    }
+  }
+}
+async function autoLockEtape() {
+  const rounds = await prisma.round.findMany({
+    where: { status: "OPEN" }
+  })
+
+  for (const round of rounds) {
+    if (new Date() > new Date(round.deadlineAt)) {
+      await prisma.round.update({ where: { id: round.id }, data: { status: "LOCKED" } })
+      console.log("Etapa blocata automat:", round.id)
     }
   }
 }
