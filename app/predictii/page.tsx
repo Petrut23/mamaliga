@@ -146,6 +146,23 @@ export default function PredictiiPage() {
     </div>
   )
 
+  if (isLocked) return (
+    <div className="min-h-screen bg-[#0a0d14] flex items-center justify-center">
+      <div className="text-center px-6">
+        <div className="text-7xl mb-6">🔒</div>
+        <div className="text-3xl font-black text-white mb-3">Timpul a expirat!</div>
+        <div className="text-gray-400 mb-2">{round.title}</div>
+        <div className="text-gray-500 text-sm mb-8">Deadline-ul pentru predictii a trecut. Urmareste meciurile si clasamentul live!</div>
+        <a href="/live" className="bg-[#e8ff47] text-black font-black px-8 py-3 rounded-xl hover:bg-[#f5ff6e] transition-colors inline-block">
+          Vezi Live Scoreboard 🔴
+        </a>
+        <div className="mt-4">
+          <a href="/" className="text-gray-500 text-sm hover:text-white">← Inapoi acasa</a>
+        </div>
+      </div>
+    </div>
+  )
+
   return (
     <div className="min-h-screen bg-[#0a0d14] text-white pb-24">
       <nav className="bg-[#111520] border-b border-[#1e2640] px-6 h-14 flex items-center justify-between sticky top-0 z-50">
