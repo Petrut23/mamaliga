@@ -10,13 +10,7 @@ export default async function AdminPage() {
 
   return (
     <div className="min-h-screen bg-[#0a0d14] text-white">
-      <nav className="bg-[#111520] border-b border-[#1e2640] px-6 h-14 flex items-center justify-between">
-        <div className="text-2xl font-black tracking-widest">Mama<span className="text-[#e8ff47]">LIGA</span> <span className="text-sm font-normal text-gray-500">Admin</span></div>
-        <div className="flex items-center gap-3">
-          <span className="text-gray-400 text-sm">{session.user?.name}</span>
-          <a href="/" className="text-xs font-semibold text-gray-500 hover:text-white">← Site</a>
-        </div>
-      </nav>
+
 
       <div className="max-w-6xl mx-auto px-6 py-10">
         <h1 className="text-4xl font-black tracking-wide mb-2">Dashboard Admin</h1>

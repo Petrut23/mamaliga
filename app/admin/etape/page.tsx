@@ -78,14 +78,7 @@ export default function AdminEtapePage() {
 
   return (
     <div className="min-h-screen bg-[#0a0d14] text-white">
-      <nav className="bg-[#111520] border-b border-[#1e2640] px-6 h-14 flex items-center justify-between">
-        <div className="text-2xl font-black tracking-widest">Mama<span className="text-[#e8ff47]">LIGA</span> <span className="text-sm font-normal text-gray-500">Admin</span></div>
-        <div className="flex gap-4 text-sm">
-          <a href="/admin" className="text-gray-500 hover:text-white">Dashboard</a>
-          <a href="/admin/etape" className="text-[#e8ff47]">Etape</a>
-          <a href="/admin/meciuri" className="text-gray-500 hover:text-white">Meciuri</a>
-        </div>
-      </nav>
+
       <div className="max-w-5xl mx-auto px-6 py-10">
         <div className="flex items-center justify-between mb-8">
           <div><h1 className="text-3xl font-black mb-1">Etape</h1><p className="text-gray-500 text-sm">Gestioneaza etapele sezonului</p></div>
