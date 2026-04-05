@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/admin/sync-scoruri",
+      "schedule": "*/20 * * * *"
+    }
+  ]
+}
