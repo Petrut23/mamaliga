@@ -12,6 +12,7 @@ export default function Navbar() {
     { href: "/predictii", label: "Predicții", icon: "📋" },
     { href: "/live", label: "Live", icon: "🔴" },
     { href: "/clasament", label: "Clasament", icon: "🏆" },
+    { href: "/rezultate", label: "Rezultatele mele", icon: "📊" },
   ]
 
   return (
