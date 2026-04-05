@@ -45,7 +45,7 @@ export default function AdminEtapePage() {
       const res = await fetch("/api/admin/etape", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: editingEtapa.id, ...form, roundNumber: parseInt(form.roundNumber), deadlineAt: new Date(form.deadlineAt).toISOString() })
+        body: JSON.stringify({ id: editingEtapa.id, ...form, roundNumber: parseInt(form.roundNumber), deadlineAt: new Date(new Date(form.deadlineAt).getTime() - 3 * 60 * 60 * 1000).toISOString() })
       })
       if (res.ok) {
         setMsg("Etapa actualizata!")
