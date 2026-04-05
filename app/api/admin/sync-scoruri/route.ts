@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server"
-import { PrismaClient } from "@prisma/client"
+import { prisma } from "@/lib/prisma"
 export const dynamic = "force-dynamic"
-const prisma = new PrismaClient()
 
 function calculeazaPuncte(predHome: number, predAway: number, realHome: number, realAway: number): number {
   if (predHome === realHome && predAway === realAway) return 5

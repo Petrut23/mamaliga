@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import { PrismaClient } from "@prisma/client"
+import { prisma } from "@/lib/prisma"
 export const dynamic = "force-dynamic"
-const prisma = new PrismaClient()
 
 export async function GET() {
   const etape = await prisma.round.findMany({ orderBy: { createdAt: "desc" }, include: { season: true } })
