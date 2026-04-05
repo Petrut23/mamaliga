@@ -22,7 +22,8 @@ export default function AdminEtapePage() {
   function startEdit(etapa: any) {
     setEditingEtapa(etapa)
     const deadline = new Date(etapa.deadlineAt)
-    const localDeadline = new Date(deadline.getTime() - deadline.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
+    const offset = deadline.getTimezoneOffset() * 60000
+    const localDeadline = new Date(deadline.getTime() - offset).toISOString().slice(0, 16)
     setForm({
       seasonId: etapa.seasonId,
       roundNumber: String(etapa.roundNumber),
