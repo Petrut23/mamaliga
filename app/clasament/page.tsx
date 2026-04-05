@@ -19,10 +19,7 @@ export default function ClasamentPage() {
 
   return (
     <div className="min-h-screen bg-[#0a0d14] text-white">
-      <nav className="bg-[#111520] border-b border-[#1e2640] px-6 h-14 flex items-center justify-between sticky top-0 z-50">
-        <a href="/" className="text-2xl font-black tracking-widest">Mama<span className="text-[#e8ff47]">LIGA</span></a>
-        <a href="/" className="text-xs text-gray-500 hover:text-white">← Acasa</a>
-      </nav>
+
 
       <div className="bg-[#111520] border-b border-[#1e2640] px-6 py-5">
         <div className="max-w-3xl mx-auto">

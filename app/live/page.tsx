@@ -85,18 +85,7 @@ export default function LivePage() {
 
   return (
     <div className="min-h-screen bg-[#0a0d14] text-white">
-      <nav className="bg-[#111520] border-b border-[#1e2640] px-6 h-14 flex items-center justify-between sticky top-0 z-50">
-        <a href="/" className="text-2xl font-black tracking-widest">Mama<span className="text-[#e8ff47]">LIGA</span></a>
-        <div className="flex items-center gap-3">
-          {liveMatches.length > 0 && (
-            <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 rounded-full px-3 py-1">
-              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-              <span className="text-xs font-bold text-red-400">{liveMatches.length} LIVE</span>
-            </div>
-          )}
-          <a href="/" className="text-xs text-gray-500 hover:text-white">← Acasa</a>
-        </div>
-      </nav>
+
 
       <div className="bg-[#111520] border-b border-[#1e2640] px-6 py-4">
         <div className="max-w-3xl mx-auto flex items-center justify-between flex-wrap gap-3">

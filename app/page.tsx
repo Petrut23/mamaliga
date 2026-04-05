@@ -9,9 +9,9 @@ export default async function HomePage() {
   return (
     <div className="min-h-screen bg-[#0a0d14] text-white">
       <div className="max-w-4xl mx-auto px-6 py-16 text-center">
-        <h1 className="text-6xl font-black tracking-wide mb-4">Bine ai venit, <span className="text-[#e8ff47]">{session.user?.name}!</span></h1>
+        <h1 className="text-5xl font-black tracking-wide mb-4">Bine ai venit, <span className="text-[#e8ff47]">{session.user?.name}!</span></h1>
         <p className="text-gray-400 text-lg mb-12">Prezici scorurile, alegi meciul căpitan și urmărești live cum urci în clasament.</p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <a href="/predictii" className="bg-[#111520] border border-[#1e2640] rounded-xl p-6 hover:border-[#e8ff47]/40 transition-colors text-left">
             <div className="text-3xl mb-3">📋</div>
             <div className="font-bold text-white mb-1">Predicții</div>
@@ -26,6 +26,11 @@ export default async function HomePage() {
             <div className="text-3xl mb-3">🏆</div>
             <div className="font-bold text-white mb-1">Clasament</div>
             <div className="text-sm text-gray-500">Vezi clasamentul general al sezonului</div>
+          </a>
+          <a href="/rezultate" className="bg-[#111520] border border-[#1e2640] rounded-xl p-6 hover:border-[#e8ff47]/40 transition-colors text-left">
+            <div className="text-3xl mb-3">📊</div>
+            <div className="font-bold text-white mb-1">Rezultatele mele</div>
+            <div className="text-sm text-gray-500">Istoricul predicțiilor și punctajelor tale</div>
           </a>
         </div>
       </div>
