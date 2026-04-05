@@ -107,7 +107,7 @@ async function sendEmailNotifications(round: any) {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          from: fromEmail,
+          from: "MamaLIGA <onboarding@resend.dev>",
           to: user.email,
           subject: `🏆 ${round.title} este LIVE!`,
           html: `
