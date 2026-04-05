@@ -181,9 +181,25 @@ export async function GET() {
     await syncFootballData()
     await syncLiga1()
     await calculeazaToatePunctele()
+    await autoCompleteEtape()
     return NextResponse.json({ ok: true, message: "Sync complet" })
   } catch (err: any) {
     console.error("Eroare sync:", err)
     return NextResponse.json({ error: err.message }, { status: 500 })
+  }
+}
+async function autoCompleteEtape() {
+  const rounds = await prisma.round.findMany({
+    where: { status: { in: ["LOCKED", "LIVE"] } }
+  })
+
+  for (const round of rounds) {
+    const matches = await prisma.match.findMany({ where: { roundId: round.id } })
+    if (matches.length === 0) continue
+    const allFinished = matches.every(m => m.status === "FINISHED")
+    if (allFinished) {
+      await prisma.round.update({ where: { id: round.id }, data: { status: "COMPLETED" } })
+      console.log("Etapa completata automat:", round.id)
+    }
   }
 }

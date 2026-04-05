@@ -61,6 +61,23 @@ export default function LivePage() {
     </div>
   )
 
+  if (data?.round?.status === "COMPLETED" && data.matches.every((m: any) => m.status === "FINISHED")) return (
+    <div className="min-h-screen bg-[#0a0d14] flex items-center justify-center">
+      <div className="text-center px-6">
+        <div className="text-7xl mb-6">🏆</div>
+        <div className="text-3xl font-black text-white mb-3">Etapa s-a incheiat!</div>
+        <div className="text-gray-400 mb-2">{data.round.title} a fost finalizata.</div>
+        <div className="text-gray-500 text-sm mb-8">Toate meciurile au fost jucate. Verifica pe ce loc te afli!</div>
+        <a href="/clasament" className="bg-[#e8ff47] text-black font-black px-8 py-3 rounded-xl hover:bg-[#f5ff6e] transition-colors inline-block">
+          Vezi Clasamentul Final 🏆
+        </a>
+        <div className="mt-4">
+          <a href="/" className="text-gray-500 text-sm hover:text-white">← Inapoi acasa</a>
+        </div>
+      </div>
+    </div>
+  )
+
   const liveMatches = data.matches.filter((m: any) => m.status === "LIVE" || m.status === "HALFTIME")
   const finishedMatches = data.matches.filter((m: any) => m.status === "FINISHED")
   const upcomingMatches = data.matches.filter((m: any) => m.status === "SCHEDULED")
