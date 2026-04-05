@@ -14,10 +14,10 @@ function calculeazaPuncte(predHome: number, predAway: number, realHome: number, 
 
 export async function GET() {
   const round = await prisma.round.findFirst({
-    where: { status: { in: ["OPEN", "LOCKED", "LIVE", "COMPLETED"] } },
+    where: { status: { in: ["LOCKED", "LIVE", "COMPLETED"] } },
     orderBy: { createdAt: "desc" }
   })
-  if (!round) return NextResponse.json({ round: null, matches: [], rankings: [] })
+  if (!round) return NextResponse.json({ round: null, matches: [], rankings: [], matchPredictions: {} })
 
   const matches = await prisma.match.findMany({
     where: { roundId: round.id },
@@ -30,10 +30,20 @@ export async function GET() {
   })
 
   const userPoints: any = {}
+  const matchPredictions: any = {}
+
   for (const pred of predictions) {
     if (!userPoints[pred.userId]) {
       userPoints[pred.userId] = { name: pred.user.name, confirmed: 0, live: 0, total: 0 }
     }
+    if (!matchPredictions[pred.matchId]) matchPredictions[pred.matchId] = []
+    matchPredictions[pred.matchId].push({
+      userName: pred.user.name,
+      home: pred.predictedHome,
+      away: pred.predictedAway,
+      isCaptain: pred.isCaptain
+    })
+
     const match = matches.find(m => m.id === pred.matchId)
     if (!match) continue
 
@@ -53,5 +63,5 @@ export async function GET() {
     .sort((a, b) => b.total - a.total || b.confirmed - a.confirmed)
     .map((r, i) => ({ ...r, rank: i + 1 }))
 
-  return NextResponse.json({ round, matches, rankings })
+  return NextResponse.json({ round, matches, rankings, matchPredictions })
 }
