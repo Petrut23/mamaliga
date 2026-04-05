@@ -174,8 +174,8 @@ function MeciuriContent() {
           <div className="bg-[#111520] border border-[#1e2640] rounded-xl p-6 mb-6">
             <h2 className="text-lg font-bold mb-4">Import meciuri din API</h2>
             <div className="flex gap-4 mb-4 flex-wrap items-end">
-              <div><label className="block text-sm text-gray-400 mb-1">De la data</label><input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="bg-[#0a0d14] border border-[#1e2640] text-white rounded-lg px-3 py-2" /></div>
-              <div><label className="block text-sm text-gray-400 mb-1">Pana la data</label><input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="bg-[#0a0d14] border border-[#1e2640] text-white rounded-lg px-3 py-2" /></div>
+              <div><label className="block text-sm text-gray-400 mb-1">De la data</label><input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="bg-[#0a0d14] border border-[#1e2640] text-white rounded-lg px-3 py-2 cursor-pointer" style={{colorScheme: "dark"}} /></div>
+              <div><label className="block text-sm text-gray-400 mb-1">Pana la data</label><input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="bg-[#0a0d14] border border-[#1e2640] text-white rounded-lg px-3 py-2 cursor-pointer" style={{colorScheme: "dark"}} /></div>
               <button onClick={fetchAvailableMatches} disabled={importLoading} className="bg-[#3b82f6] text-white font-bold px-5 py-2 rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 whitespace-nowrap">{importLoading ? "Se incarca..." : "Cauta meciuri"}</button>
             </div>
             {Object.keys(groupedMatches).length > 0 && (
