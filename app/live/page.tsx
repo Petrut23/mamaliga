@@ -8,6 +8,7 @@ const COMPETITION_FLAGS: any = {
   "Bundesliga": "🇩🇪",
   "Ligue 1": "🇫🇷",
   "Liga 1 Romania": "🇷🇴",
+  "Champions League": "🏆",
 }
 
 const STATUS_LABELS: any = {

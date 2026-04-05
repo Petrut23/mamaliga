@@ -18,6 +18,7 @@ async function syncFootballData() {
     "Serie A": "SA",
     "Bundesliga": "BL1",
     "Ligue 1": "FL1",
+    "Champions League": "CL",
   }
 
   const matches = await prisma.match.findMany({

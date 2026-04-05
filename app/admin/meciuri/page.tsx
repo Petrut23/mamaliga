@@ -10,9 +10,10 @@ const COMPETITION_FLAGS: any = {
   "Bundesliga": "🇩🇪",
   "Ligue 1": "🇫🇷",
   "Liga 1 Romania": "🇷🇴",
+  "Champions League": "🏆",
 }
 
-const COMPETITIONS = ["Premier League", "La Liga", "Serie A", "Bundesliga", "Ligue 1", "Liga 1 Romania"]
+const COMPETITIONS = ["Premier League", "La Liga", "Serie A", "Bundesliga", "Ligue 1", "Liga 1 Romania", "Champions League"]
 
 function MeciuriContent() {
   const searchParams = useSearchParams()
