@@ -1,4 +1,6 @@
-"use client"
+const fs = require('fs')
+
+const navbar = `"use client"
 import { useSession, signOut } from "next-auth/react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
@@ -40,4 +42,7 @@ export default function Navbar() {
       </div>
     </nav>
   )
-}
+}`
+
+fs.writeFileSync('app/components/Navbar.tsx', navbar)
+console.log('Gata!')
