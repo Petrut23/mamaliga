@@ -1,4 +1,6 @@
-"use client"
+const fs = require('fs')
+
+const content = `"use client"
 import { useState, useEffect } from "react"
 
 export default function AdminEtapePage() {
@@ -137,4 +139,7 @@ export default function AdminEtapePage() {
       </div>
     </div>
   )
-}
+}`
+
+fs.writeFileSync('app/admin/etape/page.tsx', content)
+console.log('Gata!')
