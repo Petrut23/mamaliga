@@ -21,6 +21,8 @@ export async function POST(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   const id = req.nextUrl.searchParams.get("id")
   if (!id) return NextResponse.json({ error: "ID lipsa" }, { status: 400 })
+  await prisma.matchPoint.deleteMany({ where: { matchId: id } })
+  await prisma.prediction.deleteMany({ where: { matchId: id } })
   await prisma.match.delete({ where: { id } })
   return NextResponse.json({ ok: true })
 }
