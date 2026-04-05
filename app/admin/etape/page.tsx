@@ -115,7 +115,7 @@ export default function AdminEtapePage() {
               <div key={etapa.id} className="bg-[#111520] border border-[#1e2640] rounded-xl px-6 py-4 flex items-center justify-between flex-wrap gap-3">
                 <div>
                   <div className="font-bold text-white">{etapa.title}</div>
-                  <div className="text-sm text-gray-500 mt-0.5">Deadline: {new Date(new Date(etapa.deadlineAt).getTime() + 3 * 60 * 60 * 1000).toLocaleString("ro-RO", { timeZone: "UTC" })}</div>
+                  <div className="text-sm text-gray-500 mt-0.5">Deadline: {new Date(etapa.deadlineAt).toLocaleString("ro-RO", { timeZone: "Europe/Bucharest" })}</div>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className={"text-xs font-bold px-3 py-1 rounded-full border " + statusColors[etapa.status]}>{etapa.status}</span>
