@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth"
 import { redirect } from "next/navigation"
 import { authOptions } from "@/pages/api/auth/[...nextauth]"
+import SyncButton from "./SyncButton"
 
 export default async function AdminPage() {
   const session = await getServerSession(authOptions)
