@@ -61,7 +61,32 @@ export async function GET() {
       .sort((a, b) => b.total - a.total || b.confirmed - a.confirmed)
       .map((r, i) => ({ ...r, rank: i + 1 }))
 
-    return NextResponse.json({ round, matches, rankings, matchPredictions })
+    // Calculeaza statistici predictii per meci
+    const matchStats: any = {}
+    for (const match of matches) {
+      const preds = predictions.filter(p => p.matchId === match.id)
+      if (preds.length === 0) continue
+      
+      let homeWin = 0, draw = 0, awayWin = 0
+      for (const pred of preds) {
+        if (pred.predictedHome > pred.predictedAway) homeWin++
+        else if (pred.predictedHome === pred.predictedAway) draw++
+        else awayWin++
+      }
+      
+      const total = preds.length
+      matchStats[match.id] = {
+        total,
+        homeWin,
+        draw,
+        awayWin,
+        homeWinPct: Math.round(homeWin / total * 100),
+        drawPct: Math.round(draw / total * 100),
+        awayWinPct: Math.round(awayWin / total * 100),
+      }
+    }
+
+    return NextResponse.json({ round, matches, rankings, matchPredictions, matchStats })
   } catch (err: any) {
     console.error("Eroare live API:", err)
     return NextResponse.json({ error: err.message }, { status: 500 })

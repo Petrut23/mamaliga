@@ -141,7 +141,7 @@ export default function LivePage() {
                 </div>
                 {data.matchPredictions[meci.id] && data.matchPredictions[meci.id].length > 0 && (
                   <div className="border-t border-[#1e2640] pt-2 mt-2">
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 mb-2">
                       {data.matchPredictions[meci.id].map((pred: any, i: number) => (
                         <div key={i} className="flex items-center gap-1 bg-[#0a0d14] rounded-lg px-2 py-1">
                           {pred.isCaptain && <span className="text-xs">⭐</span>}
@@ -150,6 +150,22 @@ export default function LivePage() {
                         </div>
                       ))}
                     </div>
+                    {data.matchStats?.[meci.id] && (
+                      <div className="flex gap-2 mt-2">
+                        <div className="flex-1 bg-blue-500/10 border border-blue-500/20 rounded-lg px-2 py-1.5 text-center">
+                          <div className="text-xs font-bold text-blue-400">{data.matchStats[meci.id].homeWinPct}%</div>
+                          <div className="text-xs text-gray-500">1</div>
+                        </div>
+                        <div className="flex-1 bg-gray-500/10 border border-gray-500/20 rounded-lg px-2 py-1.5 text-center">
+                          <div className="text-xs font-bold text-gray-400">{data.matchStats[meci.id].drawPct}%</div>
+                          <div className="text-xs text-gray-500">X</div>
+                        </div>
+                        <div className="flex-1 bg-red-500/10 border border-red-500/20 rounded-lg px-2 py-1.5 text-center">
+                          <div className="text-xs font-bold text-red-400">{data.matchStats[meci.id].awayWinPct}%</div>
+                          <div className="text-xs text-gray-500">2</div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
