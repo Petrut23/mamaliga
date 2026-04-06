@@ -1,4 +1,6 @@
-"use client"
+const fs = require('fs')
+
+const content = `"use client"
 import { useState, useEffect } from "react"
 
 const COMPETITION_FLAGS: any = {
@@ -240,4 +242,7 @@ export default function RezultatePage() {
       </div>
     </div>
   )
-}
+}`
+
+fs.writeFileSync('app/rezultate/page.tsx', content)
+console.log('Gata!')
