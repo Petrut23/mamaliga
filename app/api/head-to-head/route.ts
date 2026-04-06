@@ -38,8 +38,8 @@ export async function GET(req: NextRequest) {
 
     if (!myRanking || !opponentRanking) continue
 
-    const myPts = myRanking.finalPoints
-    const oppPts = opponentRanking.finalPoints
+    const myPts = myRanking.finalPoints ?? 0
+    const oppPts = opponentRanking.finalPoints ?? 0
     let result = "draw"
     if (myPts > oppPts) { myWins++; result = "win" }
     else if (myPts < oppPts) { opponentWins++; result = "loss" }
