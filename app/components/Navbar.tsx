@@ -14,6 +14,7 @@ export default function Navbar() {
     { href: "/live", label: "Live", icon: "🔴" },
     { href: "/clasament", label: "Clasament", icon: "🏆" },
     { href: "/rezultate", label: "Rezultate", icon: "📊" },
+    { href: "/head-to-head", label: "H2H", icon: "⚔️" },
   ]
 
   const adminLinks = [
