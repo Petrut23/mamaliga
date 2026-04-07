@@ -1,4 +1,6 @@
-"use client"
+const fs = require('fs')
+
+const content = `"use client"
 import { useState, useEffect, useCallback } from "react"
 
 const COMPETITION_FLAGS: any = {
@@ -268,4 +270,7 @@ export default function LivePage() {
       </div>
     </div>
   )
-}
+}`
+
+fs.writeFileSync('app/live/page.tsx', content)
+console.log('Gata!')
