@@ -51,7 +51,7 @@ export async function GET(req: NextRequest) {
     const dateToObj = new Date(dateTo)
     
     const res = await fetch(
-      `https://sports.bzzoiro.com/api/events/?league=23`,
+      `https://sports.bzzoiro.com/api/events/?league=23&date_from=${dateFrom}&date_to=${dateTo}`,
       {
         headers: {
           "Authorization": `Token ${process.env.BZZOIRO_API_KEY || ""}`,
