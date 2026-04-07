@@ -41,8 +41,8 @@ function BadgeTooltip({ badgeKey, earned }: { badgeKey: string, earned: boolean 
       {show && (
         <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 bg-[#1a2035] border border-[#1e2640] rounded-lg px-3 py-2 text-xs text-white shadow-xl" style={{minWidth: "150px"}}>
           <div className="font-bold">{badge.icon} {badge.name}</div>
-          <div className="text-gray-400 mt-0.5">{badge.desc}</div>
-          {!earned && <div className="text-red-400 mt-0.5">Inca necastigat</div>}
+          <div className="text-gray-200 mt-0.5">{badge.desc}</div>
+          {!earned && <div className="text-red-300 mt-0.5 font-semibold">Inca necastigat</div>}
         </div>
       )}
     </div>
