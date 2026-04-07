@@ -8,7 +8,7 @@ export async function GET() {
     if (!season) return NextResponse.json({ rankings: [], season: null })
 
     const rounds = await prisma.round.findMany({
-      where: { seasonId: season.id, status: { in: ["COMPLETED", "LIVE", "LOCKED"] } }
+      where: { seasonId: season.id, status: "COMPLETED" }
     })
 
     const roundIds = rounds.map(r => r.id)
@@ -22,7 +22,7 @@ export async function GET() {
     const userStats: any = {}
     for (const rr of roundRankings) {
       if (!userStats[rr.userId]) {
-        userStats[rr.userId] = { name: rr.user.name, total: 0, rounds: 0, exact: 0, diff: 0, result: 0, captain: 0 }
+        userStats[rr.userId] = { name: rr.user.name, total: 0, rounds: 0, exact: 0, diff: 0, result: 0, captain: 0, wins: 0 }
       }
       userStats[rr.userId].total += rr.finalPoints || rr.confirmedPoints
       userStats[rr.userId].rounds += 1
@@ -30,15 +30,16 @@ export async function GET() {
       userStats[rr.userId].diff += rr.goalDiffHits
       userStats[rr.userId].result += rr.resultHits
       userStats[rr.userId].captain += rr.captainPoints
+      if (rr.rank === 1) userStats[rr.userId].wins += 1
     }
 
     const rankings = Object.entries(userStats)
       .map(([userId, s]: any) => ({
-        userId, name: s.name, total: s.total, rounds: s.rounds,
+        userId, name: s.name, total: s.total, rounds: s.rounds, wins: s.wins,
         average: s.rounds > 0 ? Math.round((s.total / s.rounds) * 10) / 10 : 0,
         exact: s.exact, diff: s.diff, result: s.result, captain: s.captain
       }))
-      .sort((a, b) => b.total - a.total || b.exact - a.exact || b.diff - a.diff)
+      .sort((a, b) => b.wins - a.wins || b.total - a.total || b.exact - a.exact || b.diff - a.diff || b.result - a.result)
       .map((r, i) => ({ ...r, rank: i + 1 }))
 
     return NextResponse.json({ rankings, season })
