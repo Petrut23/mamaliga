@@ -17,6 +17,7 @@ model User {
   updatedAt     DateTime @updatedAt
 
   predictions     Prediction[]
+  badges          UserBadge[]
   roundRankings   RoundRanking[]
   overallRankings OverallRanking[]
 }
@@ -171,4 +172,13 @@ model OverallRanking {
   user   User   @relation(fields: [userId], references: [id])
 
   @@unique([seasonId, userId])
+}
+model UserBadge {
+  id        String   @id @default(cuid())
+  userId    String
+  badge     String
+  earnedAt  DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, badge])
 }
