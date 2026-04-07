@@ -28,7 +28,7 @@ function BadgeTooltip({ badgeKey }: { badgeKey: string }) {
     <div className="relative inline-block" onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)} onClick={() => setShow(!show)}>
       <span className="cursor-pointer text-lg">{badge.icon}</span>
       {show && (
-        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 bg-[#1a2035] border border-[#1e2640] rounded-lg px-3 py-2 text-xs text-white shadow-xl" style={{minWidth: "160px"}}>
+        <div className="fixed bottom-auto left-1/2 -translate-x-1/2 z-50 bg-[#1a2035] border border-[#1e2640] rounded-lg px-3 py-2 text-xs text-white shadow-xl" style={{minWidth: "160px", maxWidth: "200px"}}>
           <div className="font-bold">{badge.icon} {badge.name}</div>
           <div className="text-gray-400 mt-0.5">{badge.desc}</div>
         </div>
