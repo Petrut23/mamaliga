@@ -207,11 +207,7 @@ export default function LivePage() {
                           <div className="text-xs text-gray-600 italic py-2">Nicio alta predictie</div>
                         ) : (
                           <>
-                            <div className="flex text-xs text-gray-600 mb-1 px-1 gap-2">
-                              <span className="w-24">Jucator</span>
-                              <span className="w-16">Scor</span>
-                              <span className="w-12">Pct</span>
-                            </div>
+
                             {allPreds.filter((p: any) => !p.isMe).map((pred: any, i: number) => {
                               const puncPred = getPredPuncte(pred)
                               return (
