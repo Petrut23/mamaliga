@@ -107,7 +107,7 @@ function MatchCard({ meci, matchPredictions, matchStats, expandedMatch, setExpan
         {myPred && (
           <div className="flex items-center mt-2 pt-2 border-t border-[#1e2640]/50">
             <span className="w-5 flex-shrink-0 text-sm">{myPred.isCaptain ? "⭐" : ""}</span>
-            <span className="text-xs text-gray-400 w-8 flex-shrink-0">Tu:</span>
+            <span className="text-xs text-gray-400 w-20 flex-shrink-0 truncate">Tu:</span>
             <span className="text-sm font-black text-[#e8ff47] w-12 flex-shrink-0">{myPred.home} - {myPred.away}</span>
             {myPuncte !== null && meci.status !== "SCHEDULED" && (
               <span className={"text-sm font-black ml-2 " + getPuncteColor(myPuncte)}>+{myPuncte}</span>
