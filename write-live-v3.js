@@ -1,4 +1,6 @@
-import { NextResponse } from "next/server"
+const fs = require('fs')
+
+const liveApi = `import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/pages/api/auth/[...nextauth]"
@@ -151,4 +153,7 @@ function buildRankingsAndStats(predictions: any[], matches: any[], myId: string)
     .map((r, i) => ({ ...r, rank: i + 1 }))
 
   return { rankings, matchPredictions, matchStats }
-}
+}`
+
+fs.writeFileSync('app/api/live/route.ts', liveApi)
+console.log('Gata API!')
