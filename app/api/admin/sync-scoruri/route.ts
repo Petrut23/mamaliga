@@ -169,7 +169,7 @@ async function calculeazaToatePunctele() {
 
     const rankings = await prisma.roundRanking.findMany({
       where: { roundId: round.id },
-      orderBy: [{ finalPoints: "desc" }, { exactHits: "desc" }, { goalDiffHits: "desc" }]
+      orderBy: [{ finalPoints: "desc" }, { exactHits: "desc" }, { goalDiffHits: "desc" }, { resultHits: "desc" }]
     })
     for (let i = 0; i < rankings.length; i++) {
       await prisma.roundRanking.update({ where: { id: rankings[i].id }, data: { rank: i + 1 } })
