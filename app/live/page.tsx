@@ -45,11 +45,13 @@ export default function LivePage() {
 
   const fetchData = useCallback(async () => {
     try {
-      fetch("/api/admin/sync-scoruri").catch(() => {})
+      // Incarcam datele din DB instant
       const res = await fetch("/api/live")
       const d = await res.json()
       setData(d)
       setLastSync(new Date())
+      // Sync in fundal - nu blocheaza UI
+      fetch("/api/admin/sync-scoruri").catch(() => {})
     } catch (err) {
       console.error("Eroare fetch live:", err)
     } finally {
