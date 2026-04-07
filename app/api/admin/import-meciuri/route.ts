@@ -51,7 +51,7 @@ export async function GET(req: NextRequest) {
     const dateToObj = new Date(dateTo)
     
     const res = await fetch(
-      `https://sports.bzzoiro.com/api/events/?league=23&date_from=${dateFrom}&date_to=${dateTo}`,
+      `https://sports.bzzoiro.com/api/events/?league=23`,
       {
         headers: {
           "Authorization": `Token ${process.env.BZZOIRO_API_KEY || ""}`,
@@ -64,7 +64,8 @@ export async function GET(req: NextRequest) {
       const matches = data.results
         .filter((m: any) => {
           const matchDate = new Date(m.event_date)
-          return matchDate >= dateFromObj && matchDate <= dateToObj
+          const matchDateOnly = matchDate.toISOString().slice(0, 10)
+          return matchDateOnly >= dateFrom && matchDateOnly <= dateTo
         })
         .map((m: any) => ({
           externalApiId: String(m.id),
