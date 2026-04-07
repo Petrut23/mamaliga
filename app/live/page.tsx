@@ -210,7 +210,17 @@ export default function LivePage() {
                         ) : (
                           <>
 
-                            {allPreds.filter((p: any) => !p.isMe).map((pred: any, i: number) => {
+                            {allPreds
+                            .filter((p: any) => !p.isMe)
+                            .map((pred: any) => {
+                              const pts = getPredPuncte(pred)
+                              return { ...pred, calculatedPts: pts ?? -1 }
+                            })
+                            .sort((a: any, b: any) => {
+                              if (b.calculatedPts !== a.calculatedPts) return b.calculatedPts - a.calculatedPts
+                              return a.userName.localeCompare(b.userName)
+                            })
+                            .map((pred: any, i: number) => {
   const puncPred = getPredPuncte(pred)
   return (
     <div key={i} className="flex items-center justify-between py-1.5 px-1 border-b border-[#1e2640]/30 last:border-0">
