@@ -19,6 +19,25 @@ export async function GET() {
       include: { user: { select: { id: true, name: true } } }
     })
 
+    // Calculeaza forma recenta - ultimele 2 etape
+    const sortedRounds = rounds.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    const lastRound = sortedRounds[0]
+    const prevRound = sortedRounds[1]
+
+    const formaRecenta: any = {}
+    if (lastRound && prevRound) {
+      const lastRankings = await prisma.roundRanking.findMany({ where: { roundId: lastRound.id } })
+      const prevRankings = await prisma.roundRanking.findMany({ where: { roundId: prevRound.id } })
+      
+      for (const lr of lastRankings) {
+        const pr = prevRankings.find(r => r.userId === lr.userId)
+        if (!pr) { formaRecenta[lr.userId] = "new"; continue }
+        if ((lr.rank ?? 99) < (pr.rank ?? 99)) formaRecenta[lr.userId] = "up"
+        else if ((lr.rank ?? 99) > (pr.rank ?? 99)) formaRecenta[lr.userId] = "down"
+        else formaRecenta[lr.userId] = "same"
+      }
+    }
+
     const userStats: any = {}
     for (const rr of roundRankings) {
       if (!userStats[rr.userId]) {
@@ -45,7 +64,8 @@ export async function GET() {
         userId, name: s.name, total: s.total, rounds: s.rounds, wins: s.wins,
         average: s.rounds > 0 ? Math.round((s.total / s.rounds) * 10) / 10 : 0,
         exact: s.exact, diff: s.diff, result: s.result, captain: s.captain,
-        captain10: captain10PerUser[userId] || 0
+        captain10: captain10PerUser[userId] || 0,
+        forma: formaRecenta[userId] || "same"
       }))
       .sort((a, b) => 
         b.wins - a.wins || 
