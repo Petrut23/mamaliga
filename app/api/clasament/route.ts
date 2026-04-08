@@ -43,6 +43,7 @@ export async function GET() {
       if (rr.rank === 1) userStats[rr.userId].wins += 1
       if (pts > userStats[rr.userId].bestWeek) userStats[rr.userId].bestWeek = pts
       if (rr.captainPoints >= 10) userStats[rr.userId].captain10 += 1
+      userStats[rr.userId].rankHistory[rr.roundId] = rr.rank ?? 99
       userStats[rr.userId].rankHistory[rr.roundId] = rr.rank
     }
 
