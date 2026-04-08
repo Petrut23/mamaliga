@@ -119,7 +119,7 @@ async function sendEmailNotifications(round: any) {
             <div style="background: #111520; border: 1px solid #1e2640; border-radius: 8px; padding: 20px; margin: 24px 0;">
               <p style="color: #9ca3af; margin: 0 0 8px 0;">⏰ <strong style="color: white;">Deadline:</strong> ${deadline}</p>
             </div>
-            <a href="https://mamaliga.vercel.app" style="display: inline-block; background: #e8ff47; color: black; font-weight: bold; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-size: 16px;">
+            <a href="https://mamaliga.vercel.app/predictii" style="display: inline-block; background: #e8ff47; color: black; font-weight: bold; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-size: 16px;">
               Intră pe MamaLIGA →
             </a>
             <p style="color: #4b5563; font-size: 14px; margin-top: 32px;">Mult succes! 🎯</p>
