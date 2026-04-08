@@ -1,4 +1,6 @@
-import { getServerSession } from "next-auth"
+const fs = require('fs')
+
+const content = `import { getServerSession } from "next-auth"
 import { redirect } from "next/navigation"
 import { authOptions } from "@/pages/api/auth/[...nextauth]"
 
@@ -51,4 +53,7 @@ export default async function HomePage() {
       </div>
     </div>
   )
-}
+}`
+
+fs.writeFileSync('app/page.tsx', content)
+console.log('Gata!')
