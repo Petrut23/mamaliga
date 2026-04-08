@@ -1,4 +1,6 @@
-import { NextResponse } from "next/server"
+const fs = require('fs')
+
+const content = `import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/pages/api/auth/[...nextauth]"
@@ -52,4 +54,7 @@ export async function GET() {
   })
 
   return NextResponse.json({ rounds: result })
-}
+}`
+
+fs.writeFileSync('app/api/rezultate/route.ts', content)
+console.log('Gata!')
