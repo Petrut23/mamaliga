@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react"
 const BADGES: any = {
   sniper: { icon: "🎯", name: "Sniper", desc: "3+ scoruri exacte intr-o etapa" },
   dominator: { icon: "👑", name: "Dominator", desc: "Locul 1 intr-o etapa" },
-  capitan_aur: { icon: "⭐", name: "Capitan de Aur", desc: "Capitanul corect intr-o etapa" },
+  capitan_aur: { icon: "⭐", name: "Capitan de Aur", desc: "Scor exact la meciul capitan (10 pct)" },
   all_in: { icon: "🎲", name: "All In", desc: "Toate meciurile prezise corect intr-o etapa" },
   on_fire: { icon: "🔥", name: "On Fire", desc: "Locul 1 in 3 etape consecutive" },
   constant: { icon: "🏃", name: "Constant", desc: "A jucat toate etapele sezonului" },
@@ -30,7 +30,7 @@ function BadgeTooltip({ badgeKey }: { badgeKey: string }) {
       {show && (
         <div className="fixed bottom-auto left-1/2 -translate-x-1/2 z-50 bg-[#1a2035] border border-[#1e2640] rounded-lg px-3 py-2 text-xs text-white shadow-xl" style={{minWidth: "160px", maxWidth: "200px"}}>
           <div className="font-bold">{badge.icon} {badge.name}</div>
-          <div className="text-gray-400 mt-0.5">{badge.desc}</div>
+          <div className="text-gray-200 mt-0.5">{badge.desc}</div>
         </div>
       )}
     </div>
@@ -47,14 +47,18 @@ export default function ClasamentPage() {
   const [expandedEtapa, setExpandedEtapa] = useState<string | null>(null)
 
   useEffect(() => {
-    Promise.all([
-      fetch("/api/clasament").then(r => r.json()),
-      fetch("/api/badges/all").then(r => r.json())
-    ]).then(([clasament, badges]) => {
+    fetch("/api/clasament").then(r => r.json()).then(clasament => {
       setData(clasament)
-      setBadgesData(badges.userBadges || {})
       setLoading(false)
+      setTimeout(() => {
+        fetch("/api/badges/all").then(r => r.json()).then(badges => {
+          setBadgesData(badges.userBadges || {})
+        }).catch(() => {})
+      }, 2000)
     })
+    fetch("/api/clasament/istoric").then(r => r.json()).then(d => {
+      setIstoricData(d.etape || [])
+    }).catch(() => {})
   }, [])
 
   if (loading) return (
@@ -91,8 +95,6 @@ export default function ClasamentPage() {
 
               return (
                 <div key={r.userId} className={"rounded-xl border transition-all " + (isMe ? "bg-[#e8ff47]/05 border-[#e8ff47]/30" : i === 0 ? "bg-[#fbbf24]/05 border-[#fbbf24]/20" : "bg-[#111520] border-[#1e2640]")}>
-                  
-                  {/* Row principal - click expand */}
                   <div className="px-4 py-4 flex items-center gap-3 cursor-pointer" onClick={() => setExpanded(isExpanded ? null : r.userId)}>
                     <div className={"text-2xl font-black w-10 text-center flex-shrink-0 " + (i === 0 ? "text-[#fbbf24]" : i === 1 ? "text-gray-400" : i === 2 ? "text-amber-600" : "text-gray-600")}>
                       {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : r.rank}
@@ -102,7 +104,6 @@ export default function ClasamentPage() {
                         <span className={"font-bold text-base " + (isMe ? "text-[#e8ff47]" : "text-white")}>
                           {r.name} {isMe && <span className="text-xs font-normal text-gray-500">(tu)</span>}
                         </span>
-
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
@@ -114,7 +115,6 @@ export default function ClasamentPage() {
                     </div>
                   </div>
 
-                  {/* Expand - toate detaliile */}
                   {isExpanded && (
                     <div className="border-t border-[#1e2640] px-4 py-4">
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
@@ -164,9 +164,7 @@ export default function ClasamentPage() {
             })}
           </div>
         )}
-      </div>
 
-        {/* Istoricul etapelor */}
         {istoricData.length > 0 && (
           <div className="mt-8">
             <div className="text-xs font-bold tracking-widest text-gray-500 uppercase mb-4">📅 Istoricul Etapelor</div>
