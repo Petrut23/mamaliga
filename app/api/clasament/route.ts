@@ -75,7 +75,7 @@ export async function GET() {
         b.total - a.total || 
         b.bestWeek - a.bestWeek ||
         b.rounds - a.rounds ||
-        Math.random() - 0.5
+        a.name.localeCompare(b.name)
       )
       .map((r, i) => ({ ...r, rank: i + 1 }))
 
