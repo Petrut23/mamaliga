@@ -34,7 +34,7 @@ function BadgeTooltip({ badgeKey, earned }: { badgeKey: string, earned: boolean 
   const badge = ALL_BADGES[badgeKey]
   if (!badge) return null
   return (
-    <div className={"relative inline-block p-2 rounded-lg border cursor-pointer " + (earned ? "bg-[#111520] border-[#1e2640]" : "bg-[#0a0d14] border-[#1e2640]/50 opacity-40")}
+    <div className={"relative inline-block p-2 rounded-lg border cursor-pointer bg-[#111520] border-[#1e2640] " + (earned ? "" : "opacity-40")}
       onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)} onClick={() => setShow(!show)}>
       <div className="text-2xl text-center">{badge.icon}</div>
       <div className={"text-xs text-center mt-1 font-bold " + (earned ? "text-white" : "text-gray-600")}>{badge.name}</div>

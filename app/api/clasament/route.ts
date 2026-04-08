@@ -41,15 +41,17 @@ export async function GET() {
     const userStats: any = {}
     for (const rr of roundRankings) {
       if (!userStats[rr.userId]) {
-        userStats[rr.userId] = { name: rr.user.name, total: 0, rounds: 0, exact: 0, diff: 0, result: 0, captain: 0, wins: 0 }
+        userStats[rr.userId] = { name: rr.user.name, total: 0, rounds: 0, exact: 0, diff: 0, result: 0, captain: 0, wins: 0, bestWeek: 0 }
       }
-      userStats[rr.userId].total += rr.finalPoints || rr.confirmedPoints
+      const pts = rr.finalPoints || rr.confirmedPoints
+      userStats[rr.userId].total += pts
       userStats[rr.userId].rounds += 1
       userStats[rr.userId].exact += rr.exactHits
       userStats[rr.userId].diff += rr.goalDiffHits
       userStats[rr.userId].result += rr.resultHits
       userStats[rr.userId].captain += rr.captainPoints
       if (rr.rank === 1) userStats[rr.userId].wins += 1
+      if (pts > (userStats[rr.userId].bestWeek || 0)) userStats[rr.userId].bestWeek = pts
     }
 
     // Calculeaza captain10 per user
@@ -65,13 +67,15 @@ export async function GET() {
         average: s.rounds > 0 ? Math.round((s.total / s.rounds) * 10) / 10 : 0,
         exact: s.exact, diff: s.diff, result: s.result, captain: s.captain,
         captain10: captain10PerUser[userId] || 0,
-        forma: formaRecenta[userId] || "same"
+        forma: formaRecenta[userId] || "same",
+        bestWeek: s.bestWeek || 0
       }))
       .sort((a, b) => 
         b.wins - a.wins || 
         b.total - a.total || 
-        b.rounds - a.rounds || 
-        b.captain10 - a.captain10
+        b.bestWeek - a.bestWeek ||
+        b.rounds - a.rounds ||
+        Math.random() - 0.5
       )
       .map((r, i) => ({ ...r, rank: i + 1 }))
 
