@@ -60,7 +60,7 @@ async function sendDiscordNotification(round: any) {
         },
         {
           name: "🔗 Link",
-          value: "[Intră pe MamaLIGA](https://mamaliga.vercel.app)",
+          value: "[Intră pe MamaLIGA](https://mamaliga.vercel.app/predictii)",
           inline: false
         }
       ],
