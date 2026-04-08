@@ -9,7 +9,7 @@ export default async function HomePage() {
   return (
     <div className="min-h-screen bg-[#0a0d14] text-white">
       <div className="max-w-4xl mx-auto px-6 py-16 text-center">
-        <h1 className="text-5xl font-black tracking-wide mb-4">Bine ai venit, <span className="text-[#e8ff47]">{session.user?.name}!</span></h1>
+        <h1 className="text-3xl md:text-5xl font-black tracking-wide mb-4">Bine ai venit, <span className="text-[#e8ff47]">{session.user?.name}!</span></h1>
         <p className="text-gray-400 text-lg mb-12">Prezici scorurile, alegi meciul căpitan și urmărești live cum urci în clasament.</p>
         
         <div className="grid grid-cols-3 gap-4 mb-4">
