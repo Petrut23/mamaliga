@@ -17,12 +17,10 @@ export default async function HomePage() {
           <a href="/predictii" className="bg-[#111520] border border-[#1e2640] rounded-xl p-5 hover:border-[#e8ff47]/40 transition-colors text-center">
             <div className="text-3xl mb-2">📋</div>
             <div className="font-bold text-white text-sm md:text-base">Predicții</div>
-            <div className="text-xs text-gray-500 mt-1 hidden md:block">Completează scorurile pentru etapa curentă</div>
           </a>
           <a href="/live" className="bg-[#111520] border border-[#1e2640] rounded-xl p-5 hover:border-[#e8ff47]/40 transition-colors text-center">
             <div className="text-3xl mb-2">🔴</div>
             <div className="font-bold text-white text-sm md:text-base">Live</div>
-            <div className="text-xs text-gray-500 mt-1 hidden md:block">Scoruri live și clasament în timp real</div>
           </a>
         </div>
 
@@ -31,12 +29,10 @@ export default async function HomePage() {
           <a href="/clasament" className="bg-[#111520] border border-[#1e2640] rounded-xl p-5 hover:border-[#e8ff47]/40 transition-colors text-center">
             <div className="text-3xl mb-2">🏆</div>
             <div className="font-bold text-white text-sm md:text-base">Clasament</div>
-            <div className="text-xs text-gray-500 mt-1 hidden md:block">Vezi clasamentul general al sezonului</div>
           </a>
           <a href="/rezultate" className="bg-[#111520] border border-[#1e2640] rounded-xl p-5 hover:border-[#e8ff47]/40 transition-colors text-center">
             <div className="text-3xl mb-2">📊</div>
             <div className="font-bold text-white text-sm md:text-base">Rezultatele mele</div>
-            <div className="text-xs text-gray-500 mt-1 hidden md:block">Istoricul predicțiilor și punctajelor tale</div>
           </a>
         </div>
 
