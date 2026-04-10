@@ -28,7 +28,7 @@ export default function RegisterPage() {
       setError(data.error || "Ceva nu a mers")
       setLoading(false)
     } else {
-      router.push("/login")
+      router.push("/login?pending=true")
     }
   }
 

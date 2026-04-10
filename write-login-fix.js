@@ -1,4 +1,6 @@
-"use client"
+const fs = require('fs')
+
+const content = `"use client"
 import { useState, useEffect, Suspense } from "react"
 import { signIn } from "next-auth/react"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -87,4 +89,7 @@ export default function LoginPage() {
       <LoginForm />
     </Suspense>
   )
-}
+}`
+
+fs.writeFileSync('app/login/page.tsx', content)
+console.log('Gata!')
