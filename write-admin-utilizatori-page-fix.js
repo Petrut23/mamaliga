@@ -1,4 +1,6 @@
-"use client"
+const fs = require('fs')
+
+const content = `"use client"
 import { useState, useEffect } from "react"
 
 const ROLE_COLORS: any = {
@@ -131,4 +133,7 @@ export default function UtilizatoriPage() {
       </div>
     </div>
   )
-}
+}`
+
+fs.writeFileSync('app/admin/utilizatori/page.tsx', content)
+console.log('Gata!')
