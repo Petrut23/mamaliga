@@ -13,7 +13,7 @@ function LoginForm() {
   const [pendingMsg, setPendingMsg] = useState("")
 
   useEffect(() => {
-    if (searchParams.get("pending") === "true") {
+    if (searchParams?.get("pending") === "true") {
       setPendingMsg("Contul tau a fost creat si asteapta aprobare. Vei primi un email cand poti intra in aplicatie.")
     }
   }, [searchParams])
