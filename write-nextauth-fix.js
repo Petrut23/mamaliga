@@ -1,4 +1,6 @@
-import NextAuth, { NextAuthOptions } from "next-auth"
+const fs = require('fs')
+
+const content = `import NextAuth, { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { PrismaClient } from "@prisma/client"
 import bcrypt from "bcryptjs"
@@ -47,4 +49,7 @@ export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
 }
 
-export default NextAuth(authOptions)
+export default NextAuth(authOptions)`
+
+fs.writeFileSync('pages/api/auth/[...nextauth].ts', content)
+console.log('Gata!')
