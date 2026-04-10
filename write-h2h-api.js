@@ -1,4 +1,6 @@
-import { NextResponse } from "next/server"
+const fs = require('fs')
+
+const content = `import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/pages/api/auth/[...nextauth]"
@@ -130,4 +132,8 @@ export async function GET(req: Request) {
   })
 
   return NextResponse.json({ users, seasons: seasonsData, opponent })
-}
+}`
+
+fs.mkdirSync('app/api/head-to-head', { recursive: true })
+fs.writeFileSync('app/api/head-to-head/route.ts', content)
+console.log('Gata API!')

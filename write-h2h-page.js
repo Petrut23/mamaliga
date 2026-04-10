@@ -1,4 +1,6 @@
-"use client"
+const fs = require('fs')
+
+const content = `"use client"
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 
@@ -206,4 +208,7 @@ export default function HeadToHeadPage() {
       </div>
     </div>
   )
-}
+}`
+
+fs.writeFileSync('app/head-to-head/page.tsx', content)
+console.log('Gata pagina!')
