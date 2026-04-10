@@ -200,9 +200,13 @@ async function autoCompleteEtape() {
     if (matches.length === 0) continue
     const allFinished = matches.every(m => m.status === "FINISHED")
     if (allFinished) {
-      await prisma.round.update({ where: { id: round.id }, data: { status: "COMPLETED" } })
-      console.log("Etapa completata automat:", round.id)
-      await sendDiscordPodium(round.id, round.title)
+      // Verificam daca nu e deja COMPLETED pentru a evita duplicate Discord
+      const currentRound = await prisma.round.findUnique({ where: { id: round.id } })
+      if (currentRound?.status !== "COMPLETED") {
+        await prisma.round.update({ where: { id: round.id }, data: { status: "COMPLETED" } })
+        console.log("Etapa completata automat:", round.id)
+        await sendDiscordPodium(round.id, round.title)
+      }
     }
   }
 }
