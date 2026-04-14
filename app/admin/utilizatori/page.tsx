@@ -1,6 +1,4 @@
-const fs = require('fs')
-
-const content = `"use client"
+"use client"
 import { useState, useEffect } from "react"
 
 const ROLE_COLORS: any = {
@@ -85,3 +83,9 @@ export default function AdminUtilizatoriPage() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
