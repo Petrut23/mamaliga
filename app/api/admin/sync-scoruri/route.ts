@@ -1,71 +1,4 @@
-import { NextResponse } from "next/server"async function sendDiscordPodium(roundId: string, roundTitle: string) {
-  const webhookUrl = process.env.DISCORD_WEBHOOK_URL
-  if (!webhookUrl) return
-
-  const rankings = await prisma.roundRanking.findMany({
-    where: { roundId },
-    orderBy: [{ finalPoints: "desc" }, { exactHits: "desc" }],
-    include: { user: { select: { name: true, id: true } } }
-  })
-
-  if (rankings.length === 0) return
-
-  const medals = ["🥇", "🥈", "🥉"]
-  
-  // Construim clasamentul complet
-  const clasamentText = rankings.map((r, i) => {
-    const medal = medals[i] || `${i + 1}.`
-    return `${medal} **${r.user.name}** — ${r.finalPoints} pct (⚽ ${r.exactHits} exacte)`
-  }).join("\n")
-
-  // Badge-uri castigate in aceasta etapa
-  const badgeLines = []
-  for (const r of rankings) {
-    const userBadges = await prisma.userBadge.findMany({
-      where: { userId: r.user.id, roundId },
-      include: { badge: true }
-    }).catch(() => [])
-    
-    if (userBadges.length > 0) {
-      const badgeText = userBadges.map((ub: any) => ub.badge.emoji + " " + ub.badge.name).join(" ")
-      badgeLines.push(`**${r.user.name}**: ${badgeText}`)
-    }
-  }
-
-  const message: any = {
-    embeds: [{
-      title: `🏆 ${roundTitle} s-a încheiat!`,
-      description: `**Clasament final:**\n\n${clasamentText}`,
-      color: 0xe8ff47,
-      fields: [],
-      footer: { text: "MamaLIGA — Jocul de predicții al grupului" }
-    }]
-  }
-
-  if (badgeLines.length > 0) {
-    message.embeds[0].fields.push({
-      name: "🏅 Badge-uri câștigate în această etapă",
-      value: badgeLines.join("\n"),
-      inline: false
-    })
-  }
-
-  message.embeds[0].fields.push({
-    name: "📊 Vezi clasamentul complet",
-    value: "[Intră pe MamaLIGA](https://mamaliga.vercel.app/clasament)",
-    inline: false
-  })
-
-  try {
-    await fetch(webhookUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(message)
-    })
-  } catch (err) {
-    console.error("Eroare Discord podium:", err)
-  }
-}
+import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 export const dynamic = "force-dynamic"
 
@@ -236,7 +169,7 @@ async function calculeazaToatePunctele() {
 
     const rankings = await prisma.roundRanking.findMany({
       where: { roundId: round.id },
-      orderBy: [{ finalPoints: "desc" }, { exactHits: "desc" }, { goalDiffHits: "desc" }, { resultHits: "desc" }]
+      orderBy: [{ finalPoints: "desc" }, { exactHits: "desc" }, { goalDiffHits: "desc" }]
     })
     for (let i = 0; i < rankings.length; i++) {
       await prisma.roundRanking.update({ where: { id: rankings[i].id }, data: { rank: i + 1 } })
@@ -244,19 +177,15 @@ async function calculeazaToatePunctele() {
   }
 }
 
-export async function GET() {
-  try {
-    await autoLockEtape()
-    await syncFootballData()
-    await syncLiga1()
-    await calculeazaToatePunctele()
-    await autoCompleteEtape()
-    return NextResponse.json({ ok: true, message: "Sync complet" })
-  } catch (err: any) {
-    console.error("Eroare sync:", err)
-    return NextResponse.json({ error: err.message }, { status: 500 })
+async function autoLockEtape() {
+  const rounds = await prisma.round.findMany({ where: { status: "OPEN" } })
+  for (const round of rounds) {
+    if (new Date() > new Date(round.deadlineAt)) {
+      await prisma.round.update({ where: { id: round.id }, data: { status: "LOCKED" } })
+    }
   }
 }
+
 async function autoCompleteEtape() {
   const rounds = await prisma.round.findMany({
     where: { status: { in: ["LOCKED", "LIVE"] } }
@@ -267,28 +196,12 @@ async function autoCompleteEtape() {
     if (matches.length === 0) continue
     const allFinished = matches.every(m => m.status === "FINISHED")
     if (allFinished) {
-      // Verificam daca nu e deja COMPLETED pentru a evita duplicate Discord
-      const currentRound = await prisma.round.findUnique({ where: { id: round.id } })
-      if (currentRound?.status !== "COMPLETED") {
-        await prisma.round.update({ where: { id: round.id }, data: { status: "COMPLETED" } })
-        console.log("Etapa completata automat:", round.id)
-        await sendDiscordPodium(round.id, round.title)
-      }
+      await prisma.round.update({ where: { id: round.id }, data: { status: "COMPLETED" } })
+      await sendDiscordPodium(round.id, round.title)
     }
   }
 }
-async function autoLockEtape() {
-  const rounds = await prisma.round.findMany({
-    where: { status: "OPEN" }
-  })
 
-  for (const round of rounds) {
-    if (new Date() > new Date(round.deadlineAt)) {
-      await prisma.round.update({ where: { id: round.id }, data: { status: "LOCKED" } })
-      console.log("Etapa blocata automat:", round.id)
-    }
-  }
-}
 async function sendDiscordPodium(roundId: string, roundTitle: string) {
   const webhookUrl = process.env.DISCORD_WEBHOOK_URL
   if (!webhookUrl) return
@@ -296,21 +209,21 @@ async function sendDiscordPodium(roundId: string, roundTitle: string) {
   const rankings = await prisma.roundRanking.findMany({
     where: { roundId },
     orderBy: [{ finalPoints: "desc" }, { exactHits: "desc" }],
-    include: { user: { select: { name: true } } },
-    take: 3
+    include: { user: { select: { name: true } } }
   })
 
   if (rankings.length === 0) return
 
   const medals = ["🥇", "🥈", "🥉"]
-  const podiumText = rankings.map((r, i) => 
-    `${medals[i]} **${r.user.name}** — ${r.finalPoints} puncte`
-  ).join("\n")
+  const clasamentText = rankings.map((r, i) => {
+    const medal = medals[i] || `${i + 1}.`
+    return `${medal} **${r.user.name}** — ${r.finalPoints ?? 0} pct (⚽ ${r.exactHits} exacte)`
+  }).join("\n")
 
   const message = {
     embeds: [{
       title: `🏆 ${roundTitle} s-a încheiat!`,
-      description: `Iată podiumul etapei:\n\n${podiumText}`,
+      description: `**Clasament final:**\n\n${clasamentText}`,
       color: 0xe8ff47,
       fields: [
         {
@@ -329,8 +242,21 @@ async function sendDiscordPodium(roundId: string, roundTitle: string) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(message)
     })
-    console.log("Discord podium trimis pentru", roundTitle)
   } catch (err) {
     console.error("Eroare Discord podium:", err)
+  }
+}
+
+export async function GET() {
+  try {
+    await autoLockEtape()
+    await syncFootballData()
+    await syncLiga1()
+    await calculeazaToatePunctele()
+    await autoCompleteEtape()
+    return NextResponse.json({ ok: true, message: "Sync complet" })
+  } catch (err: any) {
+    console.error("Eroare sync:", err)
+    return NextResponse.json({ error: err.message }, { status: 500 })
   }
 }
