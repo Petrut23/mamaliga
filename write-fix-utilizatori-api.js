@@ -1,4 +1,6 @@
-import { NextRequest, NextResponse } from "next/server"
+const fs = require('fs')
+
+const content = `import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 export const dynamic = "force-dynamic"
 
@@ -27,4 +29,7 @@ export async function DELETE(req: NextRequest) {
   await prisma.overallRanking.deleteMany({ where: { userId: id } })
   await prisma.user.delete({ where: { id } })
   return NextResponse.json({ ok: true })
-}
+}`
+
+fs.writeFileSync('app/api/admin/utilizatori/route.ts', content)
+console.log('Gata!')
