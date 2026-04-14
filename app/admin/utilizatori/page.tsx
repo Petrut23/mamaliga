@@ -19,6 +19,17 @@ export default function AdminUtilizatoriPage() {
     })
   }, [])
 
+  async function approveUser(id: string) {
+    await fetch("/api/admin/utilizatori", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, isApproved: true })
+    })
+    setUtilizatori((prev: any) => prev.map((u: any) => u.id === id ? { ...u, isApproved: true } : u))
+    setMsg("User aprobat!")
+    setTimeout(() => setMsg(""), 3000)
+  }
+
   async function updateRole(id: string, role: string) {
     await fetch("/api/admin/utilizatori", {
       method: "PATCH",
@@ -49,6 +60,9 @@ export default function AdminUtilizatoriPage() {
     setTimeout(() => setMsg(""), 3000)
   }
 
+  const pending = utilizatori.filter(u => !u.isApproved)
+  const approved = utilizatori.filter(u => u.isApproved)
+
   return (
     <div className="min-h-screen bg-[#0a0d14] text-white">
       <div className="max-w-5xl mx-auto px-6 py-10">
@@ -59,9 +73,37 @@ export default function AdminUtilizatoriPage() {
 
         {msg && <div className="bg-green-500/10 border border-green-500/20 rounded-lg px-4 py-3 text-green-400 text-sm mb-6">{msg}</div>}
 
-        {loading ? <div className="text-gray-500 text-center py-20">Se incarca...</div> : (
+        {pending.length > 0 && (
+          <div className="mb-8">
+            <div className="text-xs font-bold tracking-widest text-orange-400 uppercase mb-3">
+              ⏳ Asteapta aprobare ({pending.length})
+            </div>
+            <div className="space-y-3">
+              {pending.map((user: any) => (
+                <div key={user.id} className="bg-orange-500/05 border border-orange-500/20 rounded-xl px-6 py-4 flex items-center justify-between flex-wrap gap-3">
+                  <div>
+                    <div className="font-bold text-white">{user.name}</div>
+                    <div className="text-sm text-gray-500 mt-0.5">{user.email}</div>
+                    <div className="text-xs text-gray-600 mt-0.5">Inregistrat: {new Date(user.createdAt).toLocaleDateString("ro-RO")}</div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button onClick={() => approveUser(user.id)} className="text-sm px-4 py-2 rounded-lg font-bold bg-green-500 text-white hover:bg-green-600 transition-colors">
+                      ✓ Aproba
+                    </button>
+                    <button onClick={() => deleteUser(user.id, user.name)} className="text-xs bg-red-500/10 text-red-400 border border-red-500/20 px-3 py-1 rounded-lg hover:bg-red-500/20 transition-colors">Sterge</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div>
+          <div className="text-xs font-bold tracking-widest text-gray-500 uppercase mb-3">
+            Utilizatori aprobati ({approved.length})
+          </div>
           <div className="space-y-3">
-            {utilizatori.map((user: any) => (
+            {approved.map((user: any) => (
               <div key={user.id} className="bg-[#111520] border border-[#1e2640] rounded-xl px-6 py-4 flex items-center justify-between flex-wrap gap-3">
                 <div>
                   <div className="font-bold text-white">{user.name}</div>
@@ -84,7 +126,9 @@ export default function AdminUtilizatoriPage() {
               </div>
             ))}
           </div>
-        )}
+        </div>
+
+        {loading && <div className="text-gray-500 text-center py-20">Se incarca...</div>}
       </div>
     </div>
   )
