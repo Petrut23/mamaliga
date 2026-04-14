@@ -102,6 +102,7 @@ async function sendEmailNotifications(round: any) {
     })
 
     const users = await prisma.user.findMany({
+      where: { receiveEmails: true },
       select: { email: true, name: true }
     })
 
