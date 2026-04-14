@@ -1,4 +1,6 @@
-"use client"
+const fs = require('fs')
+
+const content = `"use client"
 import { useState, useEffect } from "react"
 
 const ROLE_COLORS: any = {
@@ -7,128 +9,79 @@ const ROLE_COLORS: any = {
   SUPER_ADMIN: "text-[#e8ff47] bg-[#e8ff47]/10 border-[#e8ff47]/20",
 }
 
-export default function UtilizatoriPage() {
-  const [users, setUsers] = useState<any[]>([])
+export default function AdminUtilizatoriPage() {
+  const [utilizatori, setUtilizatori] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [msg, setMsg] = useState("")
 
   useEffect(() => {
-    fetch('/api/admin/utilizatori').then(r => r.json()).then(d => setUsers(d.users || []))
+    fetch("/api/admin/utilizatori").then(r => r.json()).then(d => {
+      setUtilizatori(d.utilizatori || [])
+      setLoading(false)
+    })
   }, [])
 
-  async function handleApprove(userId: string) {
-    await fetch('/api/admin/utilizatori', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, action: 'approve' })
+  async function updateRole(id: string, role: string) {
+    await fetch("/api/admin/utilizatori", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, role })
     })
-    setUsers(users.map(u => u.id === userId ? { ...u, isApproved: true } : u))
+    setUtilizatori((prev: any) => prev.map((u: any) => u.id === id ? { ...u, role } : u))
+    setMsg("Rol actualizat!")
+    setTimeout(() => setMsg(""), 3000)
   }
 
-  async function handleRoleChange(userId: string, role: string) {
-    await fetch('/api/admin/utilizatori', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, action: 'role', role })
+  async function toggleEmail(id: string, receiveEmails: boolean) {
+    await fetch("/api/admin/utilizatori", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, receiveEmails })
     })
-    setUsers(users.map(u => u.id === userId ? { ...u, role } : u))
+    setUtilizatori((prev: any) => prev.map((u: any) => u.id === id ? { ...u, receiveEmails } : u))
+    setMsg(receiveEmails ? "Email-uri activate!" : "Email-uri dezactivate!")
+    setTimeout(() => setMsg(""), 3000)
   }
 
-  async function handleDelete(userId: string) {
-    if (!confirm('Sigur vrei sa stergi acest utilizator?')) return
-    await fetch('/api/admin/utilizatori', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId })
-    })
-    setUsers(users.filter(u => u.id !== userId))
+  async function deleteUser(id: string, name: string) {
+    if (!confirm("Sigur vrei sa stergi userul " + name + "?")) return
+    await fetch("/api/admin/utilizatori?id=" + id, { method: "DELETE" })
+    setUtilizatori((prev: any) => prev.filter((u: any) => u.id !== id))
+    setMsg("User sters!")
+    setTimeout(() => setMsg(""), 3000)
   }
-
-  const pending = users.filter(u => !u.isApproved)
-  const approved = users.filter(u => u.isApproved)
 
   return (
     <div className="min-h-screen bg-[#0a0d14] text-white">
-      <div className="bg-[#111520] border-b border-[#1e2640] px-6 py-5">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div>
-            <div className="text-xs font-bold tracking-widest text-[#e8ff47] uppercase mb-1">Admin</div>
-            <div className="text-2xl font-black">Utilizatori</div>
-          </div>
-          <a href="/admin" className="text-sm text-gray-400 hover:text-white">← Dashboard</a>
+      <div className="max-w-5xl mx-auto px-6 py-10">
+        <div className="mb-8">
+          <h1 className="text-3xl font-black mb-1">Utilizatori</h1>
+          <p className="text-gray-500 text-sm">Gestioneaza utilizatorii aplicatiei</p>
         </div>
-      </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-6 space-y-8">
+        {msg && <div className="bg-green-500/10 border border-green-500/20 rounded-lg px-4 py-3 text-green-400 text-sm mb-6">{msg}</div>}
 
-        {/* Conturi in asteptare */}
-        {pending.length > 0 && (
-          <div>
-            <div className="text-xs font-bold tracking-widest text-orange-400 uppercase mb-3">
-              ⏳ Asteapta aprobare ({pending.length})
-            </div>
-            <div className="space-y-2">
-              {pending.map(user => (
-                <div key={user.id} className="bg-orange-500/05 border border-orange-500/20 rounded-xl px-5 py-4 flex items-center gap-4 flex-wrap">
-                  <div className="flex-1 min-w-0">
-                    <div className="font-bold text-white">{user.name}</div>
-                    <div className="text-sm text-gray-400">{user.email}</div>
-                    <div className="text-xs text-gray-600 mt-0.5">
-                      Inregistrat: {new Date(user.createdAt).toLocaleDateString('ro-RO')}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <button onClick={() => handleApprove(user.id)}
-                      className="text-sm px-4 py-2 rounded-lg font-bold bg-green-500 text-white hover:bg-green-600 transition-colors">
-                      ✓ Aprobă
-                    </button>
-                    <button onClick={() => handleDelete(user.id)}
-                      className="text-sm px-4 py-2 rounded-lg font-bold bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 transition-colors">
-                      Șterge
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Utilizatori aprobati */}
-        <div>
-          <div className="text-xs font-bold tracking-widest text-gray-500 uppercase mb-3">
-            Utilizatori aprobați ({approved.length})
-          </div>
-          <div className="space-y-2">
-            {approved.map(user => (
-              <div key={user.id} className="bg-[#111520] border border-[#1e2640] rounded-xl px-5 py-4 flex items-center gap-4 flex-wrap">
-                <div className="flex-1 min-w-0">
+        {loading ? <div className="text-gray-500 text-center py-20">Se incarca...</div> : (
+          <div className="space-y-3">
+            {utilizatori.map((user: any) => (
+              <div key={user.id} className="bg-[#111520] border border-[#1e2640] rounded-xl px-6 py-4 flex items-center justify-between flex-wrap gap-3">
+                <div>
                   <div className="font-bold text-white">{user.name}</div>
-                  <div className="text-sm text-gray-400">{user.email}</div>
-                  <div className="text-xs text-gray-600 mt-0.5">
-                    Inregistrat: {new Date(user.createdAt).toLocaleDateString('ro-RO')}
-                  </div>
+                  <div className="text-sm text-gray-500 mt-0.5">{user.email}</div>
+                  <div className="text-xs text-gray-600 mt-0.5">Inregistrat: {new Date(user.createdAt).toLocaleDateString("ro-RO")}</div>
                 </div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className={"text-xs font-bold px-2 py-1 rounded-lg border " + ROLE_COLORS[user.role]}>
-                    {user.role}
-                  </span>
-                  <select
-                    value={user.role}
-                    onChange={e => handleRoleChange(user.id, e.target.value)}
-                    className="text-xs bg-[#1e2640] text-white border border-[#1e2640] rounded-lg px-2 py-1">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <span className={"text-xs font-bold px-3 py-1 rounded-full border " + ROLE_COLORS[user.role]}>{user.role}</span>
+                  <select value={user.role} onChange={e => updateRole(user.id, e.target.value)} className="bg-[#0a0d14] border border-[#1e2640] text-gray-400 text-xs rounded-lg px-2 py-1">
                     <option value="USER">USER</option>
                     <option value="ADMIN">ADMIN</option>
                     <option value="SUPER_ADMIN">SUPER_ADMIN</option>
                   </select>
-                  <button onClick={() => handleDelete(user.id)}
-                    className="text-xs px-3 py-1.5 rounded-lg font-bold bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 transition-colors">
-                    Șterge
+                  <button onClick={() => toggleEmail(user.id, !user.receiveEmails)}
+                    className={"text-xs px-3 py-1 rounded-lg border transition-colors " + (user.receiveEmails !== false ? "bg-green-500/10 text-green-400 border-green-500/20 hover:bg-green-500/20" : "bg-gray-500/10 text-gray-400 border-gray-500/20 hover:bg-gray-500/20")}>
+                    {user.receiveEmails !== false ? "📧 Email ON" : "📧 Email OFF"}
                   </button>
+                  <button onClick={() => deleteUser(user.id, user.name)} className="text-xs bg-red-500/10 text-red-400 border border-red-500/20 px-3 py-1 rounded-lg hover:bg-red-500/20 transition-colors">Sterge</button>
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-
-      </div>
-    </div>
-  )
-}
