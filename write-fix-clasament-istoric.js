@@ -1,4 +1,6 @@
-import { NextResponse } from "next/server"
+const fs = require('fs')
+
+const content = `import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 export const dynamic = "force-dynamic"
 
@@ -8,11 +10,11 @@ export async function GET() {
     if (!season) return NextResponse.json({ rankings: [], season: null })
 
     // Preia date istorice
-    const istoricRankings = await prisma.$queryRaw`
+    const istoricRankings = await prisma.$queryRaw\`
       SELECT hr.*, u.name, u.id as "userId"
       FROM "HistoricRanking" hr
       JOIN "User" u ON hr."userId" = u.id
-    ` as any[]
+    \` as any[]
 
     const rounds = await prisma.round.findMany({
       where: { seasonId: season.id, status: "COMPLETED" },
@@ -100,4 +102,7 @@ export async function GET() {
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 })
   }
-}
+}`
+
+fs.writeFileSync('app/api/clasament/route.ts', content)
+console.log('Gata!')
