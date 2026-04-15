@@ -11,10 +11,11 @@ export async function GET() {
 }
 
 export async function PATCH(req: NextRequest) {
-  const { id, role, receiveEmails } = await req.json()
+  const { id, role, receiveEmails, isApproved } = await req.json()
   const updateData: any = {}
   if (role !== undefined) updateData.role = role
   if (receiveEmails !== undefined) updateData.receiveEmails = receiveEmails
+  if (isApproved !== undefined) updateData.isApproved = isApproved
   const user = await prisma.user.update({ where: { id }, data: updateData })
   return NextResponse.json({ user })
 }
