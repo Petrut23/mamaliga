@@ -132,7 +132,7 @@ async function sendEmailNotifications(round: any) {
         `
       })
     }
-    console.log("Emailuri trimise catre", users.length, "useri")
+    console.log("Emailuri trimise catre", filteredUsers.length, "useri")
   } catch (err) {
     console.error("Eroare trimitere emailuri:", err)
   }
