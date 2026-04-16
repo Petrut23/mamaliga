@@ -101,10 +101,14 @@ async function sendEmailNotifications(round: any) {
       auth: { user: gmailUser, pass: gmailPass }
     })
 
-    const users = await prisma.user.findMany({
-      select: { email: true, name: true, receiveEmails: true }
+    const allUsers = await prisma.user.findMany({
+      select: { email: true, name: true }
     })
-    const filteredUsers = users.filter((u: any) => u.receiveEmails !== false)
+    const usersWithPref = await prisma.$queryRaw`SELECT email, "receiveEmails" FROM "User"` as any[]
+    const filteredUsers = allUsers.filter((u: any) => {
+      const pref = usersWithPref.find((p: any) => p.email === u.email)
+      return pref ? pref.receiveEmails !== false : true
+    })
 
     for (const user of filteredUsers) {
       await transporter.sendMail({
