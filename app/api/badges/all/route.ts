@@ -103,10 +103,13 @@ export async function GET() {
           total: allRankings.filter(r => r.userId === u.id).reduce((s, r) => s + (r.finalPoints || 0), 0)
         })).sort((a, b) => b.wins - a.wins || b.total - a.total)
 
-        const myPos = userTotals.findIndex(u => u.userId === user.id) + 1
-        if (myPos === 1) earned.push("campion")
-        else if (myPos === 2) earned.push("aproape")
-        else if (myPos === 3) earned.push("podium")
+        const totalRoundsCompleted = rounds.length
+        if (totalRoundsCompleted > 0) {
+          const myPos = userTotals.findIndex(u => u.userId === user.id) + 1
+          if (myPos === 1) earned.push("campion")
+          else if (myPos === 2) earned.push("aproape")
+          else if (myPos === 3) earned.push("podium")
+        }
       }
 
       userBadges[user.id] = [...new Set(earned)]
