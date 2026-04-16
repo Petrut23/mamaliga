@@ -123,9 +123,14 @@ function MeciuriContent() {
     return acc
   }, {})
 
+  const groupedMeciuri = meciuri.reduce((acc: any, m: any) => {
+    if (!acc[m.competitionName]) acc[m.competitionName] = []
+    acc[m.competitionName].push(m)
+    return acc
+  }, {})
+
   return (
     <div className="min-h-screen bg-[#0a0d14] text-white">
-
       <div className="max-w-5xl mx-auto px-6 py-10">
         <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
           <div><h1 className="text-3xl font-black mb-1">Meciuri</h1><p className="text-gray-500 text-sm">Importa sau adauga manual meciuri</p></div>
@@ -147,7 +152,7 @@ function MeciuriContent() {
 
         {msg && <div className="bg-green-500/10 border border-green-500/20 rounded-lg px-4 py-3 text-green-400 text-sm mb-6">{msg}</div>}
 
-        {(showForm) && (
+        {showForm && (
           <div className="bg-[#111520] border border-[#1e2640] rounded-xl p-6 mb-6">
             <h2 className="text-lg font-bold mb-4">{editingMeci ? "Editeaza meci" : "Meci nou manual"}</h2>
             <form onSubmit={saveMeci} className="grid grid-cols-2 gap-4">
@@ -203,18 +208,30 @@ function MeciuriContent() {
           </div>
         )}
 
-        {loading ? <div className="text-gray-500 text-center py-20">Se incarca...</div> : meciuri.length === 0 && selectedRound ? <div className="text-center py-20 text-gray-500">Nu exista meciuri.</div> : (
-          <div className="space-y-2">
-            {meciuri.map((meci: any) => (
-              <div key={meci.id} className="bg-[#111520] border border-[#1e2640] rounded-xl px-6 py-4 flex items-center justify-between flex-wrap gap-3">
-                <div className="flex items-center gap-4 flex-wrap">
-                  <span className="text-xs text-gray-500 bg-[#0a0d14] px-2 py-1 rounded">{COMPETITION_FLAGS[meci.competitionName] || "🏆"} {meci.competitionName}</span>
-                  <span className="font-bold">{meci.homeTeam} vs {meci.awayTeam}</span>
+        {loading ? (
+          <div className="text-gray-500 text-center py-20">Se incarca...</div>
+        ) : meciuri.length === 0 && selectedRound ? (
+          <div className="text-center py-20 text-gray-500">Nu exista meciuri.</div>
+        ) : (
+          <div className="space-y-6">
+            {Object.entries(groupedMeciuri).map(([comp, compMeciuri]: any) => (
+              <div key={comp}>
+                <div className="flex items-center gap-2 mb-3 px-1">
+                  <span className="text-xl">{COMPETITION_FLAGS[comp] || "🏆"}</span>
+                  <span className="text-xs font-bold tracking-widest text-gray-400 uppercase">{comp}</span>
+                  <span className="text-xs text-gray-600">({compMeciuri.length} meciuri)</span>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-gray-500">{new Date(meci.kickoffAt).toLocaleString("ro-RO")}</span>
-                  <button onClick={() => startEdit(meci)} className="text-xs bg-[#3b82f6]/10 text-[#3b82f6] border border-[#3b82f6]/20 px-3 py-1 rounded-lg hover:bg-[#3b82f6]/20 transition-colors">Edit</button>
-                  <button onClick={() => deleteMeci(meci.id)} className="text-xs text-red-400 border border-red-400/20 px-3 py-1 rounded-lg hover:bg-red-400/10 transition-colors">Sterge</button>
+                <div className="space-y-2">
+                  {compMeciuri.map((meci: any) => (
+                    <div key={meci.id} className="bg-[#111520] border border-[#1e2640] rounded-xl px-6 py-4 flex items-center justify-between flex-wrap gap-3">
+                      <span className="font-bold">{meci.homeTeam} vs {meci.awayTeam}</span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm text-gray-500">{new Date(meci.kickoffAt).toLocaleString("ro-RO")}</span>
+                        <button onClick={() => startEdit(meci)} className="text-xs bg-[#3b82f6]/10 text-[#3b82f6] border border-[#3b82f6]/20 px-3 py-1 rounded-lg hover:bg-[#3b82f6]/20 transition-colors">Edit</button>
+                        <button onClick={() => deleteMeci(meci.id)} className="text-xs text-red-400 border border-red-400/20 px-3 py-1 rounded-lg hover:bg-red-400/10 transition-colors">Sterge</button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             ))}
