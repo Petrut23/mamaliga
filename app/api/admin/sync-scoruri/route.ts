@@ -169,13 +169,127 @@ async function calculeazaToatePunctele() {
 
     const rankings = await prisma.roundRanking.findMany({
       where: { roundId: round.id },
-      orderBy: [{ finalPoints: "desc" }, { exactHits: "desc" }, { goalDiffHits: "desc" }, { resultHits: "desc" }]
+      orderBy: [{ finalPoints: "desc" }, { exactHits: "desc" }, { goalDiffHits: "desc" }]
     })
     for (let i = 0; i < rankings.length; i++) {
       await prisma.roundRanking.update({ where: { id: rankings[i].id }, data: { rank: i + 1 } })
     }
   }
 }
+
+async function autoLockEtape() {
+  const rounds = await prisma.round.findMany({ where: { status: "OPEN" } })
+  for (const round of rounds) {
+    if (new Date() > new Date(round.deadlineAt)) {
+      await prisma.round.update({ where: { id: round.id }, data: { status: "LOCKED" } })
+    }
+  }
+}
+
+async function autoCompleteEtape() {
+  const rounds = await prisma.round.findMany({
+    where: { status: { in: ["LOCKED", "LIVE"] } }
+  })
+
+  for (const round of rounds) {
+    const matches = await prisma.match.findMany({ where: { roundId: round.id } })
+    if (matches.length === 0) continue
+    const allFinished = matches.every(m => m.status === "FINISHED")
+    if (allFinished) {
+      await prisma.round.update({ where: { id: round.id }, data: { status: "COMPLETED" } })
+      await sendDiscordPodium(round.id, round.title)
+    }
+  }
+}
+
+async function sendDiscordPodium(roundId: string, roundTitle: string) {
+  const webhookUrl = process.env.DISCORD_WEBHOOK_URL
+  if (!webhookUrl) return
+
+  const rankings = await prisma.roundRanking.findMany({
+    where: { roundId },
+    orderBy: [{ finalPoints: "desc" }, { exactHits: "desc" }],
+    include: { user: { select: { name: true, id: true } } }
+  })
+  if (rankings.length === 0) return
+
+  const BADGE_MAP: any = {
+    sniper: "🎯 Sniper", dominator: "👑 Dominator", capitan_aur: "⭐ Căpitan de Aur",
+    all_in: "🎲 All In", on_fire: "🔥 On Fire", constant: "🏃 Constant",
+    perfect: "💎 Perfect", campion: "🏆 Campion", lingura: "🥄 Lingura de Lemn",
+    ghinionist: "😅 Ghinionist", etern_secund: "😤 Etern Secund",
+    aproape: "🥈 Aproape", podium: "🥉 Podium", veteranul: "🦕 Veteranul", fidel: "📅 Fidel",
+  }
+
+  const userIds = rankings.map(r => r.user.id)
+  const roundStart = await prisma.roundRanking.findFirst({ 
+    where: { roundId }, 
+    orderBy: { createdAt: "asc" },
+    select: { createdAt: true } 
+  })
+
+  const allBadges = await prisma.$queryRawUnsafe(
+    `SELECT "userId", "badge" FROM "UserBadge" WHERE "userId" = ANY($1) AND "earnedAt" >= $2`,
+    userIds,
+    roundStart?.createdAt || new Date()
+  ) as any[]
+
+  const userBadges: any = {}
+  for (const b of allBadges) {
+    if (!userBadges[b.userId]) userBadges[b.userId] = []
+    userBadges[b.userId].push(BADGE_MAP[b.badge] || b.badge)
+  }
+
+  const medals = ["🥇", "🥈", "🥉"]
+  
+  const clasamentText = rankings.map((r, i) => {
+    const medal = medals[i] || `${i + 1}.`
+    return `${medal} **${r.user.name}** — ${r.finalPoints ?? 0} pct (⚽ ${r.exactHits} exacte)`
+  }).join("\n")
+
+  const badgeSection = rankings
+    .filter(r => userBadges[r.user.id]?.length > 0)
+    .map(r => `**${r.user.name}**: ${userBadges[r.user.id].join(" ")}`)
+    .join("\n")
+
+  const fields: any[] = []
+  
+  if (badgeSection) {
+    fields.push({
+      name: "🏅 Badge-uri câștigate",
+      value: badgeSection,
+      inline: false
+    })
+  }
+
+  fields.push({
+    name: "📊 Vezi clasamentul complet",
+    value: "[Intră pe MamaLIGA](https://mamaliga.vercel.app/clasament)",
+    inline: false
+  })
+
+  const message = {
+    embeds: [{
+      title: `🏆 ${roundTitle} s-a încheiat!`,
+      description: `**Clasament etapă:**\n\n${clasamentText}`,
+      color: 0xe8ff47,
+      fields,
+      footer: { text: "MamaLIGA — Jocul de predicții al grupului" }
+    }]
+  }
+
+  try {
+    await fetch(webhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(message)
+    })
+    console.log("Discord podium trimis")
+  } catch (err) {
+    console.error("Eroare Discord podium:", err)
+  }
+}
+
 
 export async function GET() {
   try {
@@ -188,78 +302,5 @@ export async function GET() {
   } catch (err: any) {
     console.error("Eroare sync:", err)
     return NextResponse.json({ error: err.message }, { status: 500 })
-  }
-}
-async function autoCompleteEtape() {
-  const rounds = await prisma.round.findMany({
-    where: { status: { in: ["LOCKED", "LIVE"] } }
-  })
-
-  for (const round of rounds) {
-    const matches = await prisma.match.findMany({ where: { roundId: round.id } })
-    if (matches.length === 0) continue
-    const allFinished = matches.every(m => m.status === "FINISHED")
-    if (allFinished) {
-      await prisma.round.update({ where: { id: round.id }, data: { status: "COMPLETED" } })
-      console.log("Etapa completata automat:", round.id)
-      await sendDiscordPodium(round.id, round.title)
-    }
-  }
-}
-async function autoLockEtape() {
-  const rounds = await prisma.round.findMany({
-    where: { status: "OPEN" }
-  })
-
-  for (const round of rounds) {
-    if (new Date() > new Date(round.deadlineAt)) {
-      await prisma.round.update({ where: { id: round.id }, data: { status: "LOCKED" } })
-      console.log("Etapa blocata automat:", round.id)
-    }
-  }
-}
-async function sendDiscordPodium(roundId: string, roundTitle: string) {
-  const webhookUrl = process.env.DISCORD_WEBHOOK_URL
-  if (!webhookUrl) return
-
-  const rankings = await prisma.roundRanking.findMany({
-    where: { roundId },
-    orderBy: [{ finalPoints: "desc" }, { exactHits: "desc" }],
-    include: { user: { select: { name: true } } },
-    take: 3
-  })
-
-  if (rankings.length === 0) return
-
-  const medals = ["🥇", "🥈", "🥉"]
-  const podiumText = rankings.map((r, i) => 
-    `${medals[i]} **${r.user.name}** — ${r.finalPoints} puncte`
-  ).join("\n")
-
-  const message = {
-    embeds: [{
-      title: `🏆 ${roundTitle} s-a încheiat!`,
-      description: `Iată podiumul etapei:\n\n${podiumText}`,
-      color: 0xe8ff47,
-      fields: [
-        {
-          name: "📊 Vezi clasamentul complet",
-          value: "[Intră pe MamaLIGA](https://mamaliga.vercel.app/clasament)",
-          inline: false
-        }
-      ],
-      footer: { text: "MamaLIGA — Jocul de predicții al grupului" }
-    }]
-  }
-
-  try {
-    await fetch(webhookUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(message)
-    })
-    console.log("Discord podium trimis pentru", roundTitle)
-  } catch (err) {
-    console.error("Eroare Discord podium:", err)
   }
 }

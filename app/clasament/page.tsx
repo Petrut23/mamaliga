@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react"
 const BADGES: any = {
   sniper: { icon: "🎯", name: "Sniper", desc: "3+ scoruri exacte intr-o etapa" },
   dominator: { icon: "👑", name: "Dominator", desc: "Locul 1 intr-o etapa" },
-  capitan_aur: { icon: "⭐", name: "Capitan de Aur", desc: "Capitanul corect intr-o etapa" },
+  capitan_aur: { icon: "⭐", name: "Capitan de Aur", desc: "Scor exact la meciul capitan (10 pct)" },
   all_in: { icon: "🎲", name: "All In", desc: "Toate meciurile prezise corect intr-o etapa" },
   on_fire: { icon: "🔥", name: "On Fire", desc: "Locul 1 in 3 etape consecutive" },
   constant: { icon: "🏃", name: "Constant", desc: "A jucat toate etapele sezonului" },
@@ -30,7 +30,7 @@ function BadgeTooltip({ badgeKey }: { badgeKey: string }) {
       {show && (
         <div className="fixed bottom-auto left-1/2 -translate-x-1/2 z-50 bg-[#1a2035] border border-[#1e2640] rounded-lg px-3 py-2 text-xs text-white shadow-xl" style={{minWidth: "160px", maxWidth: "200px"}}>
           <div className="font-bold">{badge.icon} {badge.name}</div>
-          <div className="text-gray-400 mt-0.5">{badge.desc}</div>
+          <div className="text-gray-200 mt-0.5">{badge.desc}</div>
         </div>
       )}
     </div>
@@ -43,16 +43,22 @@ export default function ClasamentPage() {
   const [badgesData, setBadgesData] = useState<any>({})
   const [loading, setLoading] = useState(true)
   const [expanded, setExpanded] = useState<string | null>(null)
+  const [istoricData, setIstoricData] = useState<any[]>([])
+  const [expandedEtapa, setExpandedEtapa] = useState<string | null>(null)
 
   useEffect(() => {
-    Promise.all([
-      fetch("/api/clasament").then(r => r.json()),
-      fetch("/api/badges/all").then(r => r.json())
-    ]).then(([clasament, badges]) => {
+    fetch("/api/clasament").then(r => r.json()).then(clasament => {
       setData(clasament)
-      setBadgesData(badges.userBadges || {})
       setLoading(false)
+      setTimeout(() => {
+        fetch("/api/badges/all").then(r => r.json()).then(badges => {
+          setBadgesData(badges.userBadges || {})
+        }).catch(() => {})
+      }, 2000)
     })
+    fetch("/api/clasament/istoric").then(r => r.json()).then(d => {
+      setIstoricData(d.etape || [])
+    }).catch(() => {})
   }, [])
 
   if (loading) return (
@@ -89,16 +95,16 @@ export default function ClasamentPage() {
 
               return (
                 <div key={r.userId} className={"rounded-xl border transition-all " + (isMe ? "bg-[#e8ff47]/05 border-[#e8ff47]/30" : i === 0 ? "bg-[#fbbf24]/05 border-[#fbbf24]/20" : "bg-[#111520] border-[#1e2640]")}>
-                  
-                  {/* Row principal - click expand */}
                   <div className="px-4 py-4 flex items-center gap-3 cursor-pointer" onClick={() => setExpanded(isExpanded ? null : r.userId)}>
                     <div className={"text-2xl font-black w-10 text-center flex-shrink-0 " + (i === 0 ? "text-[#fbbf24]" : i === 1 ? "text-gray-400" : i === 2 ? "text-amber-600" : "text-gray-600")}>
                       {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : r.rank}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <span className={"font-bold text-base " + (isMe ? "text-[#e8ff47]" : "text-white")}>
-                        {r.name} {isMe && <span className="text-xs font-normal text-gray-500">(tu)</span>}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className={"font-bold text-base " + (isMe ? "text-[#e8ff47]" : "text-white")}>
+                          {r.name} {isMe && <span className="text-xs font-normal text-gray-500">(tu)</span>}
+                        </span>
+                      </div>
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="text-right">
@@ -109,7 +115,6 @@ export default function ClasamentPage() {
                     </div>
                   </div>
 
-                  {/* Expand - toate detaliile */}
                   {isExpanded && (
                     <div className="border-t border-[#1e2640] px-4 py-4">
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
@@ -157,6 +162,53 @@ export default function ClasamentPage() {
                 </div>
               )
             })}
+          </div>
+        )}
+
+        {istoricData.length > 0 && (
+          <div className="mt-8">
+            <div className="text-xs font-bold tracking-widest text-gray-500 uppercase mb-4">📅 Istoricul Etapelor</div>
+            <div className="space-y-2">
+              {istoricData.map((etapa: any) => (
+                <div key={etapa.id} className="bg-[#111520] border border-[#1e2640] rounded-xl overflow-hidden">
+                  <button onClick={() => setExpandedEtapa(expandedEtapa === etapa.id ? null : etapa.id)}
+                    className="w-full px-5 py-4 flex items-center justify-between hover:bg-[#1a2035] transition-colors">
+                    <div className="font-bold text-white text-left">{etapa.title}</div>
+                    <span className="text-gray-500 text-xs">{expandedEtapa === etapa.id ? "▲" : "▼"}</span>
+                  </button>
+                  {expandedEtapa === etapa.id && (
+                    <div className="border-t border-[#1e2640]">
+                      {etapa.rankings.map((r: any, i: number) => (
+                        <div key={r.userId} className="flex items-center gap-3 px-5 py-3 border-b border-[#1e2640]/50 last:border-0">
+                          <div className={"text-lg font-black w-8 text-center flex-shrink-0 " + (i === 0 ? "text-[#fbbf24]" : i === 1 ? "text-gray-400" : i === 2 ? "text-amber-600" : "text-gray-600")}>
+                            {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : r.rank}
+                          </div>
+                          <div className="flex-1 font-semibold text-sm text-white">{r.name}</div>
+                          <div className="flex items-center gap-3 text-xs">
+                            <div className="text-center">
+                              <div className="font-black text-[#e8ff47]">{r.points}</div>
+                              <div className="text-gray-600">pct</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="font-black text-green-400">{r.exact}</div>
+                              <div className="text-gray-600">exacte</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="font-black text-yellow-400">{r.diff}</div>
+                              <div className="text-gray-600">dif</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="font-black text-blue-400">{r.result}</div>
+                              <div className="text-gray-600">cor</div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>

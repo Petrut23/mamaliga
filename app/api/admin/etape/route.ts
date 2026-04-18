@@ -60,7 +60,7 @@ async function sendDiscordNotification(round: any) {
         },
         {
           name: "🔗 Link",
-          value: "[Intră pe MamaLIGA](https://mamaliga.vercel.app)",
+          value: "[Intră pe MamaLIGA](https://mamaliga.vercel.app/predictii)",
           inline: false
         }
       ],
@@ -101,11 +101,16 @@ async function sendEmailNotifications(round: any) {
       auth: { user: gmailUser, pass: gmailPass }
     })
 
-    const users = await prisma.user.findMany({
+    const allUsers = await prisma.user.findMany({
       select: { email: true, name: true }
     })
+    const usersWithPref = await prisma.$queryRaw`SELECT email, "receiveEmails" FROM "User"` as any[]
+    const filteredUsers = allUsers.filter((u: any) => {
+      const pref = usersWithPref.find((p: any) => p.email === u.email)
+      return pref ? pref.receiveEmails !== false : true
+    })
 
-    for (const user of users) {
+    for (const user of filteredUsers) {
       await transporter.sendMail({
         from: `MamaLIGA <${gmailUser}>`,
         to: user.email,
@@ -119,7 +124,7 @@ async function sendEmailNotifications(round: any) {
             <div style="background: #111520; border: 1px solid #1e2640; border-radius: 8px; padding: 20px; margin: 24px 0;">
               <p style="color: #9ca3af; margin: 0 0 8px 0;">⏰ <strong style="color: white;">Deadline:</strong> ${deadline}</p>
             </div>
-            <a href="https://mamaliga.vercel.app" style="display: inline-block; background: #e8ff47; color: black; font-weight: bold; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-size: 16px;">
+            <a href="https://mamaliga.vercel.app/predictii" style="display: inline-block; background: #e8ff47; color: black; font-weight: bold; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-size: 16px;">
               Intră pe MamaLIGA →
             </a>
             <p style="color: #4b5563; font-size: 14px; margin-top: 32px;">Mult succes! 🎯</p>
@@ -127,7 +132,7 @@ async function sendEmailNotifications(round: any) {
         `
       })
     }
-    console.log("Emailuri trimise catre", users.length, "useri")
+    console.log("Emailuri trimise catre", filteredUsers.length, "useri")
   } catch (err) {
     console.error("Eroare trimitere emailuri:", err)
   }

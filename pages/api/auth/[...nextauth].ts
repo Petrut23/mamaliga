@@ -15,21 +15,12 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email }
-        })
+        const user = await prisma.user.findUnique({ where: { email: credentials.email } })
         if (!user || !user.passwordHash) return null
-        const passwordMatch = await bcrypt.compare(
-          credentials.password,
-          user.passwordHash
-        )
+        const passwordMatch = await bcrypt.compare(credentials.password, user.passwordHash)
         if (!passwordMatch) return null
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-        }
+        if (!user.isApproved) throw new Error("PENDING_APPROVAL")
+        return { id: user.id, email: user.email, name: user.name, role: user.role }
       }
     })
   ],
@@ -52,9 +43,7 @@ export const authOptions: NextAuthOptions = {
       return session
     }
   },
-  pages: {
-    signIn: "/login",
-  },
+  pages: { signIn: "/login" },
   secret: process.env.NEXTAUTH_SECRET,
 }
 

@@ -83,7 +83,7 @@ function MatchCard({ meci, matchPredictions, matchStats, expandedMatch, setExpan
     <div className={"rounded-xl border transition-all " + (meci.status === "LIVE" || meci.status === "HALFTIME" ? "bg-red-500/05 border-red-500/20" : meci.status === "FINISHED" ? "bg-[#111520] border-[#1e2640] opacity-90" : "bg-[#111520] border-[#1e2640]")}>
       <div className="px-4 py-3 cursor-pointer" onClick={() => setExpandedMatch(isExpanded ? null : meci.id)}>
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs text-gray-500">{COMPETITION_FLAGS[meci.competitionName] || "🏆"} {meci.competitionName}</span>
+          <span className="text-xs text-gray-500">{new Date(meci.kickoffAt).toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" })}</span>
           <div className="flex items-center gap-2">
             <span className={"text-xs font-bold " + (meci.status === "LIVE" ? "text-red-400" : meci.status === "HALFTIME" ? "text-yellow-400" : meci.status === "FINISHED" ? "text-gray-500" : "text-blue-400")}>
               {STATUS_LABELS[meci.status] || meci.status}
@@ -95,7 +95,7 @@ function MatchCard({ meci, matchPredictions, matchStats, expandedMatch, setExpan
           <div className="flex-1 text-right font-bold text-sm">{meci.homeTeam}</div>
           <div className="text-center min-w-20">
             {meci.status === "SCHEDULED" ? (
-              <span className="text-gray-500 text-sm font-bold">{new Date(meci.kickoffAt).toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" })}</span>
+              <span className="text-gray-500 text-sm font-bold">vs</span>
             ) : meci.status === "FINISHED" ? (
               <span className="text-xl font-black">{meci.finalHomeScore} - {meci.finalAwayScore}</span>
             ) : (
@@ -163,6 +163,32 @@ function MatchCard({ meci, matchPredictions, matchStats, expandedMatch, setExpan
   )
 }
 
+function GroupedMatches({ matches, matchPredictions, matchStats, expandedMatch, setExpandedMatch }: any) {
+  const grouped = matches.reduce((acc: any, m: any) => {
+    if (!acc[m.competitionName]) acc[m.competitionName] = []
+    acc[m.competitionName].push(m)
+    return acc
+  }, {})
+
+  return (
+    <div className="space-y-6">
+      {Object.entries(grouped).map(([comp, compMatches]: any) => (
+        <div key={comp}>
+          <div className="flex items-center gap-2 mb-3 px-1">
+            <span className="text-lg">{COMPETITION_FLAGS[comp] || "🏆"}</span>
+            <span className="text-xs font-bold tracking-widest text-gray-400 uppercase">{comp}</span>
+          </div>
+          <div className="space-y-3">
+            {compMatches.map((meci: any) => (
+              <MatchCard key={meci.id} meci={meci} matchPredictions={matchPredictions} matchStats={matchStats} expandedMatch={expandedMatch} setExpandedMatch={setExpandedMatch} />
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export default function LivePage() {
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -196,7 +222,6 @@ export default function LivePage() {
     </div>
   )
 
-  // Scenariul 2 - etapa activa LOCKED/LIVE
   if (data?.scenario === "active") {
     const liveMatches = data.matches.filter((m: any) => m.status === "LIVE" || m.status === "HALFTIME")
     const finishedMatches = data.matches.filter((m: any) => m.status === "FINISHED")
@@ -237,11 +262,7 @@ export default function LivePage() {
           </div>
 
           {activeTab === "meciuri" && (
-            <div className="space-y-3">
-              {data.matches.map((meci: any) => (
-                <MatchCard key={meci.id} meci={meci} matchPredictions={data.matchPredictions} matchStats={data.matchStats} expandedMatch={expandedMatch} setExpandedMatch={setExpandedMatch} />
-              ))}
-            </div>
+            <GroupedMatches matches={data.matches} matchPredictions={data.matchPredictions} matchStats={data.matchStats} expandedMatch={expandedMatch} setExpandedMatch={setExpandedMatch} />
           )}
 
           {activeTab === "clasament" && (
@@ -271,11 +292,8 @@ export default function LivePage() {
     )
   }
 
-  // Scenariul 1 si 3 - intre etape
   return (
     <div className="min-h-screen bg-[#0a0d14] text-white">
-      
-      {/* Countdown - doar daca exista etapa urmatoare OPEN */}
       {data?.nextRound && (
         <div className="bg-[#111520] border-b border-[#e8ff47]/20 px-6 py-5">
           <div className="max-w-3xl mx-auto text-center">
@@ -292,7 +310,6 @@ export default function LivePage() {
         </div>
       )}
 
-      {/* Rezultatele etapei anterioare */}
       {data?.previousRound && (
         <div className="max-w-3xl mx-auto px-4 py-6">
           <div className="flex items-center gap-3 mb-4">
@@ -309,11 +326,7 @@ export default function LivePage() {
           </div>
 
           {activeTab === "meciuri" && (
-            <div className="space-y-3">
-              {data.prevMatches.map((meci: any) => (
-                <MatchCard key={meci.id} meci={meci} matchPredictions={data.prevMatchPredictions} matchStats={{}} expandedMatch={expandedMatch} setExpandedMatch={setExpandedMatch} />
-              ))}
-            </div>
+            <GroupedMatches matches={data.prevMatches} matchPredictions={data.prevMatchPredictions} matchStats={{}} expandedMatch={expandedMatch} setExpandedMatch={setExpandedMatch} />
           )}
 
           {activeTab === "clasament" && (
@@ -333,7 +346,6 @@ export default function LivePage() {
         </div>
       )}
 
-      {/* Nicio etapa */}
       {!data?.previousRound && !data?.nextRound && (
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">

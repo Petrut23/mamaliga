@@ -17,6 +17,7 @@ export default function Navbar() {
     { href: "/clasament", label: "Clasament", icon: "🏆" },
     { href: "/rezultate", label: "Rezultate", icon: "📊" },
     { href: "/head-to-head", label: "H2H", icon: "⚔️" },
+    { href: "/regulament", label: "Regulament", icon: "📜" },
   ]
 
   const adminLinks = [
