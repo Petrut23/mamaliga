@@ -211,7 +211,7 @@ function RankingList({ rankings, hasLive }: any) {
 
             {isExpanded && (
               <div className="border-t border-[#1e2640] px-4 py-3">
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                   <div className="bg-[#0a0d14] rounded-lg p-2 text-center">
                     <div className="text-lg font-black text-green-400">{r.exact}</div>
                     <div className="text-xs text-gray-500">✅ Exacte</div>
