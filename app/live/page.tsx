@@ -36,9 +36,15 @@ function getPuncteColor(pct: number) {
   return "text-gray-400"
 }
 
+function getResultLabel(base: number) {
+  if (base === 5) return <span className="text-xs text-green-400">✅ Exact</span>
+  if (base === 2) return <span className="text-xs text-yellow-400">🟡 Diferenta</span>
+  if (base === 1) return <span className="text-xs text-blue-400">🔵 Rezultat</span>
+  return <span className="text-xs text-red-400">❌ Gresit</span>
+}
+
 function Countdown({ deadline }: { deadline: string }) {
   const [timeLeft, setTimeLeft] = useState("")
-
   useEffect(() => {
     function update() {
       const diff = new Date(deadline).getTime() - new Date().getTime()
@@ -52,7 +58,6 @@ function Countdown({ deadline }: { deadline: string }) {
     const interval = setInterval(update, 1000)
     return () => clearInterval(interval)
   }, [deadline])
-
   return <span className="font-black text-[#e8ff47]">{timeLeft}</span>
 }
 
@@ -115,7 +120,6 @@ function MatchCard({ meci, matchPredictions, matchStats, expandedMatch, setExpan
           </div>
         )}
       </div>
-
       {isExpanded && (
         <div className="border-t border-[#1e2640] px-4 py-3">
           <div className="mb-3">
@@ -169,7 +173,6 @@ function GroupedMatches({ matches, matchPredictions, matchStats, expandedMatch, 
     acc[m.competitionName].push(m)
     return acc
   }, {})
-
   return (
     <div className="space-y-6">
       {Object.entries(grouped).map(([comp, compMatches]: any) => (
@@ -185,6 +188,90 @@ function GroupedMatches({ matches, matchPredictions, matchStats, expandedMatch, 
           </div>
         </div>
       ))}
+    </div>
+  )
+}
+
+function RankingList({ rankings, matches, matchPredictions, hasLive }: any) {
+  const [expandedUser, setExpandedUser] = useState<string | null>(null)
+
+  function getUserMatchDetails(userId: string) {
+    return matches.map((match: any) => {
+      const preds = matchPredictions?.[match.id] || []
+      const pred = preds.find((p: any) => p.userId === userId)
+      if (!pred) return null
+      const currentHome = match.status === "FINISHED" ? match.finalHomeScore : match.liveHomeScore
+      const currentAway = match.status === "FINISHED" ? match.finalAwayScore : match.liveAwayScore
+      let base: number | null = null
+      let total: number | null = null
+      if (currentHome !== null && currentAway !== null) {
+        base = calcPuncte(pred.home, pred.away, currentHome, currentAway)
+        total = base * (pred.isCaptain ? 2 : 1)
+      }
+      return { match, pred, base, total }
+    }).filter(Boolean)
+  }
+
+  return (
+    <div className="space-y-2">
+      {rankings.length === 0 ? (
+        <div className="text-center py-20 text-gray-500">Nicio predictie inca.</div>
+      ) : rankings.map((r: any, i: number) => {
+        const isExpanded = expandedUser === r.userId
+        const matchDetails = isExpanded ? getUserMatchDetails(r.userId) : []
+
+        return (
+          <div key={r.userId} className={"rounded-xl border transition-all " + (i === 0 ? "bg-[#fbbf24]/05 border-[#fbbf24]/20" : "bg-[#111520] border-[#1e2640]")}>
+            <div className="px-4 py-3 flex items-center gap-3 cursor-pointer" onClick={() => setExpandedUser(isExpanded ? null : r.userId)}>
+              <div className={"text-2xl font-black w-8 text-center " + (i === 0 ? "text-[#fbbf24]" : i === 1 ? "text-gray-400" : i === 2 ? "text-amber-600" : "text-gray-600")}>
+                {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : r.rank}
+              </div>
+              <div className="flex-1">
+                <div className="font-bold">{r.name}</div>
+                <div className="flex gap-3 mt-0.5">
+                  <span className="text-xs text-green-400">✅ {r.exact}</span>
+                  <span className="text-xs text-yellow-400">🟡 {r.diff}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {hasLive && <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse flex-shrink-0"></span>}
+                <div className="text-2xl font-black text-[#e8ff47]">{r.total}</div>
+                <div className="text-xs text-gray-500">pct</div>
+                <span className="text-gray-600 text-xs ml-1">{isExpanded ? "▲" : "▼"}</span>
+              </div>
+            </div>
+
+            {isExpanded && (
+              <div className="border-t border-[#1e2640] px-4 py-3 space-y-2">
+                {matchDetails.length === 0 ? (
+                  <div className="text-xs text-gray-600 italic">Nicio predictie</div>
+                ) : matchDetails.map((d: any, idx: number) => (
+                  <div key={idx} className="flex items-center justify-between py-1.5 border-b border-[#1e2640]/30 last:border-0">
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs text-gray-500 truncate">{d.match.homeTeam} vs {d.match.awayTeam}</div>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        {d.pred.isCaptain && <span className="text-xs">⭐</span>}
+                        <span className="text-xs text-[#e8ff47] font-bold">{d.pred.home} - {d.pred.away}</span>
+                        {d.match.status !== "SCHEDULED" && (
+                          <span className="text-xs text-gray-500">
+                            ({d.match.status === "FINISHED" ? d.match.finalHomeScore : d.match.liveHomeScore ?? 0} - {d.match.status === "FINISHED" ? d.match.finalAwayScore : d.match.liveAwayScore ?? 0})
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 ml-2">
+                      {d.base !== null && d.match.status !== "SCHEDULED" && getResultLabel(d.base)}
+                      {d.total !== null && d.match.status !== "SCHEDULED" && (
+                        <span className={"text-sm font-black " + getPuncteColor(d.total)}>+{d.total}</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -226,6 +313,7 @@ export default function LivePage() {
     const liveMatches = data.matches.filter((m: any) => m.status === "LIVE" || m.status === "HALFTIME")
     const finishedMatches = data.matches.filter((m: any) => m.status === "FINISHED")
     const upcomingMatches = data.matches.filter((m: any) => m.status === "SCHEDULED")
+    const hasLive = liveMatches.length > 0 || upcomingMatches.length > 0
 
     if (data?.round?.status === "COMPLETED" && data.matches.every((m: any) => m.status === "FINISHED")) return (
       <div className="min-h-screen bg-[#0a0d14] flex items-center justify-center">
@@ -266,26 +354,7 @@ export default function LivePage() {
           )}
 
           {activeTab === "clasament" && (
-            <div className="space-y-2">
-              {data.rankings.length === 0 ? (
-                <div className="text-center py-20 text-gray-500">Nicio predictie inca.</div>
-              ) : data.rankings.map((r: any, i: number) => {
-                const hasLive = data.matches.some((m: any) => m.status === "LIVE" || m.status === "HALFTIME" || m.status === "SCHEDULED")
-                return (
-                  <div key={r.userId} className={"rounded-xl border px-4 py-3 flex items-center gap-3 " + (i === 0 ? "bg-[#fbbf24]/05 border-[#fbbf24]/20" : "bg-[#111520] border-[#1e2640]")}>
-                    <div className={"text-2xl font-black w-8 text-center " + (i === 0 ? "text-[#fbbf24]" : i === 1 ? "text-gray-400" : i === 2 ? "text-amber-600" : "text-gray-600")}>
-                      {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : r.rank}
-                    </div>
-                    <div className="flex-1 font-bold">{r.name}</div>
-                    <div className="flex items-center gap-2">
-                      {hasLive && <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse flex-shrink-0"></span>}
-                      <div className="text-2xl font-black text-[#e8ff47]">{r.total}</div>
-                      <div className="text-xs text-gray-500">pct</div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
+            <RankingList rankings={data.rankings} matches={data.matches} matchPredictions={data.matchPredictions} hasLive={hasLive} />
           )}
         </div>
       </div>
@@ -330,18 +399,7 @@ export default function LivePage() {
           )}
 
           {activeTab === "clasament" && (
-            <div className="space-y-2">
-              {data.prevRankings.map((r: any, i: number) => (
-                <div key={r.userId} className={"rounded-xl border px-4 py-3 flex items-center gap-3 " + (i === 0 ? "bg-[#fbbf24]/05 border-[#fbbf24]/20" : "bg-[#111520] border-[#1e2640]")}>
-                  <div className={"text-2xl font-black w-8 text-center " + (i === 0 ? "text-[#fbbf24]" : i === 1 ? "text-gray-400" : i === 2 ? "text-amber-600" : "text-gray-600")}>
-                    {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : r.rank}
-                  </div>
-                  <div className="flex-1 font-bold">{r.name}</div>
-                  <div className="text-2xl font-black text-[#e8ff47]">{r.total}</div>
-                  <div className="text-xs text-gray-500">pct</div>
-                </div>
-              ))}
-            </div>
+            <RankingList rankings={data.prevRankings} matches={data.prevMatches} matchPredictions={data.prevMatchPredictions} hasLive={false} />
           )}
         </div>
       )}
