@@ -63,7 +63,7 @@ function buildRankingsAndStats(predictions: any[], matches: any[], myId: string)
 
   const rankings = Object.entries(userPoints)
     .map(([userId, pts]: any) => ({ userId, name: pts.name, confirmed: pts.confirmed, live: pts.live, total: pts.confirmed + pts.live }))
-    .sort((a, b) => b.total - a.total || b.confirmed - a.confirmed)
+    .sort((a, b) => b.total - a.total || b.exact - a.exact || b.confirmed - a.confirmed)
     .map((r, i) => ({ ...r, rank: i + 1 }))
 
   return { rankings, matchPredictions, matchStats }
