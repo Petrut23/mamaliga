@@ -20,10 +20,11 @@ function buildRankingsAndStats(predictions: any[], matches: any[], myId: string)
 
   for (const pred of predictions) {
     if (!userPoints[pred.userId]) {
-      userPoints[pred.userId] = { name: pred.user.name, confirmed: 0, live: 0 }
+      userPoints[pred.userId] = { name: pred.user.name, confirmed: 0, live: 0, exact: 0, diff: 0 }
     }
     if (!matchPredictions[pred.matchId]) matchPredictions[pred.matchId] = []
     matchPredictions[pred.matchId].push({
+      userId: pred.userId,
       userName: pred.user.name,
       home: pred.predictedHome,
       away: pred.predictedAway,
@@ -37,9 +38,13 @@ function buildRankingsAndStats(predictions: any[], matches: any[], myId: string)
     if (match.status === "FINISHED" && match.finalHomeScore !== null && match.finalAwayScore !== null) {
       const base = calculeazaPuncte(pred.predictedHome, pred.predictedAway, match.finalHomeScore, match.finalAwayScore)
       userPoints[pred.userId].confirmed += base * (pred.isCaptain ? 2 : 1)
+      if (base === 5) userPoints[pred.userId].exact++
+      if (base === 2) userPoints[pred.userId].diff++
     } else if ((match.status === "LIVE" || match.status === "HALFTIME") && match.liveHomeScore !== null && match.liveAwayScore !== null) {
       const base = calculeazaPuncte(pred.predictedHome, pred.predictedAway, match.liveHomeScore, match.liveAwayScore)
       userPoints[pred.userId].live += base * (pred.isCaptain ? 2 : 1)
+      if (base === 5) userPoints[pred.userId].exact++
+      if (base === 2) userPoints[pred.userId].diff++
     }
   }
 
@@ -62,8 +67,12 @@ function buildRankingsAndStats(predictions: any[], matches: any[], myId: string)
   }
 
   const rankings = Object.entries(userPoints)
-    .map(([userId, pts]: any) => ({ userId, name: pts.name, confirmed: pts.confirmed, live: pts.live, total: pts.confirmed + pts.live }))
-    .sort((a, b) => b.total - a.total || b.exact - a.exact || b.confirmed - a.confirmed)
+    .map(([userId, pts]: any) => ({
+      userId, name: pts.name, confirmed: pts.confirmed, live: pts.live,
+      exact: pts.exact, diff: pts.diff,
+      total: pts.confirmed + pts.live
+    }))
+    .sort((a, b) => b.total - a.total || b.exact - a.exact || b.diff - a.diff || b.confirmed - a.confirmed)
     .map((r, i) => ({ ...r, rank: i + 1 }))
 
   return { rankings, matchPredictions, matchStats }
@@ -74,25 +83,21 @@ export async function GET() {
     const session = await getServerSession(authOptions)
     const myId = (session?.user as any)?.id
 
-    // Etapa activa LOCKED/LIVE
     const activeRound = await prisma.round.findFirst({
       where: { status: { in: ["LOCKED", "LIVE"] } },
       orderBy: { createdAt: "desc" }
     })
 
-    // Etapa urmatoare OPEN/DRAFT - pentru countdown
     const nextRound = await prisma.round.findFirst({
       where: { status: { in: ["OPEN", "DRAFT"] } },
       orderBy: { createdAt: "desc" }
     })
 
-    // Cea mai recenta etapa COMPLETED
     const previousRound = await prisma.round.findFirst({
       where: { status: "COMPLETED" },
       orderBy: { createdAt: "desc" }
     })
 
-    // Scenariul 2 - etapa activa LOCKED/LIVE
     if (activeRound) {
       const matches = await prisma.match.findMany({
         where: { roundId: activeRound.id },
@@ -110,7 +115,6 @@ export async function GET() {
       })
     }
 
-    // Scenariul 1 si 3 - intre etape
     let prevMatches: any[] = []
     let prevRankings: any[] = []
     let prevMatchPredictions: any = {}
