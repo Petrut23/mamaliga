@@ -20,7 +20,7 @@ function buildRankingsAndStats(predictions: any[], matches: any[], myId: string)
 
   for (const pred of predictions) {
     if (!userPoints[pred.userId]) {
-      userPoints[pred.userId] = { name: pred.user.name, confirmed: 0, live: 0, exact: 0, diff: 0 }
+      userPoints[pred.userId] = { name: pred.user.name, confirmed: 0, live: 0, exact: 0, diff: 0, result: 0, wrong: 0 }
     }
     if (!matchPredictions[pred.matchId]) matchPredictions[pred.matchId] = []
     matchPredictions[pred.matchId].push({
@@ -39,12 +39,16 @@ function buildRankingsAndStats(predictions: any[], matches: any[], myId: string)
       const base = calculeazaPuncte(pred.predictedHome, pred.predictedAway, match.finalHomeScore, match.finalAwayScore)
       userPoints[pred.userId].confirmed += base * (pred.isCaptain ? 2 : 1)
       if (base === 5) userPoints[pred.userId].exact++
-      if (base === 2) userPoints[pred.userId].diff++
+      else if (base === 2) userPoints[pred.userId].diff++
+      else if (base === 1) userPoints[pred.userId].result++
+      else userPoints[pred.userId].wrong++
     } else if ((match.status === "LIVE" || match.status === "HALFTIME") && match.liveHomeScore !== null && match.liveAwayScore !== null) {
       const base = calculeazaPuncte(pred.predictedHome, pred.predictedAway, match.liveHomeScore, match.liveAwayScore)
       userPoints[pred.userId].live += base * (pred.isCaptain ? 2 : 1)
       if (base === 5) userPoints[pred.userId].exact++
-      if (base === 2) userPoints[pred.userId].diff++
+      else if (base === 2) userPoints[pred.userId].diff++
+      else if (base === 1) userPoints[pred.userId].result++
+      else userPoints[pred.userId].wrong++
     }
   }
 
@@ -69,7 +73,7 @@ function buildRankingsAndStats(predictions: any[], matches: any[], myId: string)
   const rankings = Object.entries(userPoints)
     .map(([userId, pts]: any) => ({
       userId, name: pts.name, confirmed: pts.confirmed, live: pts.live,
-      exact: pts.exact, diff: pts.diff,
+      exact: pts.exact, diff: pts.diff, result: pts.result, wrong: pts.wrong,
       total: pts.confirmed + pts.live
     }))
     .sort((a, b) => b.total - a.total || b.exact - a.exact || b.diff - a.diff || b.confirmed - a.confirmed)
