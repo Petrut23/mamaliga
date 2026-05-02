@@ -81,7 +81,7 @@ function MatchCard({ meci, matchPredictions, matchStats, expandedMatch, setExpan
     <div className={"rounded-xl border transition-all " + (meci.status === "LIVE" || meci.status === "HALFTIME" ? "bg-red-500/05 border-red-500/20" : meci.status === "FINISHED" ? "bg-[#111520] border-[#1e2640] opacity-90" : "bg-[#111520] border-[#1e2640]")}>
       <div className="px-4 py-3 cursor-pointer" onClick={() => setExpandedMatch(isExpanded ? null : meci.id)}>
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs text-gray-500">{new Date(meci.kickoffAt).toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" })}</span>
+          <span className="text-xs text-gray-500">{new Date(meci.kickoffAt).toLocaleDateString("ro-RO", { weekday: "short", day: "2-digit", month: "short", timeZone: "Europe/Bucharest" })} {new Date(meci.kickoffAt).toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Bucharest" })}</span>
           <div className="flex items-center gap-2">
             <span className={"text-xs font-bold " + (meci.status === "LIVE" ? "text-red-400" : meci.status === "HALFTIME" ? "text-yellow-400" : meci.status === "FINISHED" ? "text-gray-500" : "text-blue-400")}>
               {STATUS_LABELS[meci.status] || meci.status}
