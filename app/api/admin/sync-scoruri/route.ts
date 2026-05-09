@@ -39,15 +39,10 @@ async function syncFootballData() {
     )
     const data = await res.json()
     if (!data.matches) return
-    console.log("Matches:", JSON.stringify(data.matches.map((m: any) => ({id: m.id, status: m.status, score: m.score})), null, 2)) 
+
     for (const apiMatch of data.matches) {
       const match = matches.find(m => m.externalApiId === String(apiMatch.id))
       if (!match) continue
-
-      const homeScore = apiMatch.score.fullTime?.home
-      const awayScore = apiMatch.score.fullTime?.away
-      const liveHome = apiMatch.score.fullTime?.home ?? apiMatch.score.regularTime?.home
-      const liveAway = apiMatch.score.fullTime?.away ?? apiMatch.score.regularTime?.away
 
       let newStatus = match.status
       if (apiMatch.status === "FINISHED") newStatus = "FINISHED"
@@ -55,14 +50,16 @@ async function syncFootballData() {
       else if (apiMatch.status === "PAUSED") newStatus = "HALFTIME"
       else if (apiMatch.status === "TIMED" || apiMatch.status === "SCHEDULED") newStatus = "SCHEDULED"
 
+      const isFinished = newStatus === "FINISHED"
+
       await prisma.match.update({
         where: { id: match.id },
         data: {
           status: newStatus,
-          liveHomeScore: liveHome,
-          liveAwayScore: liveAway,
-          finalHomeScore: newStatus === "FINISHED" ? homeScore : null,
-          finalAwayScore: newStatus === "FINISHED" ? awayScore : null,
+          liveHomeScore: !isFinished ? (apiMatch.score.fullTime?.home ?? null) : null,
+          liveAwayScore: !isFinished ? (apiMatch.score.fullTime?.away ?? null) : null,
+          finalHomeScore: isFinished ? apiMatch.score.fullTime?.home : null,
+          finalAwayScore: isFinished ? apiMatch.score.fullTime?.away : null,
           lastSyncedAt: new Date()
         }
       })
@@ -80,15 +77,18 @@ async function syncLiga1() {
     }
   })
 
-  for (const match of matches) {
-    if (!match.externalApiId) continue
+  if (matches.length === 0) return
+
+  // Requesturi paralele in loc de secventiale
+  await Promise.all(matches.map(async (match) => {
+    if (!match.externalApiId) return
     try {
       const res = await fetch(
         `https://sports.bzzoiro.com/api/events/${match.externalApiId}/`,
         { headers: { "Authorization": `Token ${process.env.BZZOIRO_API_KEY || ""}` } }
       )
       const data = await res.json()
-      if (!data.id) continue
+      if (!data.id) return
 
       let newStatus = match.status
       let liveHome = match.liveHomeScore
@@ -100,8 +100,8 @@ async function syncLiga1() {
         newStatus = "FINISHED"
         finalHome = data.home_score
         finalAway = data.away_score
-        liveHome = data.home_score
-        liveAway = data.away_score
+        liveHome = null
+        liveAway = null
       } else if (data.status === "inprogress") {
         newStatus = "LIVE"
         liveHome = data.home_score
@@ -115,7 +115,7 @@ async function syncLiga1() {
     } catch (err) {
       console.error("Eroare sync Liga1:", match.id, err)
     }
-  }
+  }))
 }
 
 async function calculeazaToatePunctele() {
@@ -124,18 +124,18 @@ async function calculeazaToatePunctele() {
   })
 
   for (const round of rounds) {
-   const finishedMatches = await prisma.match.findMany({
-  where: {
-    roundId: round.id,
-    status: "FINISHED",
-    finalHomeScore: { not: null },
-    finalAwayScore: { not: null },
-    lastSyncedAt: {
-      gte: new Date(Date.now() - 24 * 60 * 60 * 1000)
-    }
-  },
-  include: { predictions: true }
-})
+    const finishedMatches = await prisma.match.findMany({
+      where: {
+        roundId: round.id,
+        status: "FINISHED",
+        finalHomeScore: { not: null },
+        finalAwayScore: { not: null },
+        lastSyncedAt: {
+          gte: new Date(Date.now() - 24 * 60 * 60 * 1000)
+        }
+      },
+      include: { predictions: true }
+    })
 
     for (const match of finishedMatches) {
       if (match.finalHomeScore === null || match.finalAwayScore === null) continue
@@ -189,6 +189,7 @@ async function calculeazaToatePunctele() {
     }
   }
 }
+
 async function autoLockEtape() {
   const rounds = await prisma.round.findMany({ where: { status: "OPEN" } })
   for (const round of rounds) {
@@ -234,10 +235,10 @@ async function sendDiscordPodium(roundId: string, roundTitle: string) {
   }
 
   const userIds = rankings.map(r => r.user.id)
-  const roundStart = await prisma.roundRanking.findFirst({ 
-    where: { roundId }, 
+  const roundStart = await prisma.roundRanking.findFirst({
+    where: { roundId },
     orderBy: { createdAt: "asc" },
-    select: { createdAt: true } 
+    select: { createdAt: true }
   })
 
   const allBadges = await prisma.$queryRawUnsafe(
@@ -253,7 +254,7 @@ async function sendDiscordPodium(roundId: string, roundTitle: string) {
   }
 
   const medals = ["🥇", "🥈", "🥉"]
-  
+
   const clasamentText = rankings.map((r, i) => {
     const medal = medals[i] || `${i + 1}.`
     return `${medal} **${r.user.name}** — ${r.finalPoints ?? 0} pct (⚽ ${r.exactHits} exacte)`
@@ -265,7 +266,7 @@ async function sendDiscordPodium(roundId: string, roundTitle: string) {
     .join("\n")
 
   const fields: any[] = []
-  
+
   if (badgeSection) {
     fields.push({
       name: "🏅 Badge-uri câștigate",
@@ -379,20 +380,13 @@ async function sendDiscordPodium(roundId: string, roundTitle: string) {
   }
 }
 
-
 export async function GET() {
   try {
-    const t0 = Date.now()
     await autoLockEtape()
-    console.log("autoLock:", Date.now() - t0, "ms")
     await syncFootballData()
-    console.log("syncFootball:", Date.now() - t0, "ms")
     await syncLiga1()
-    console.log("syncLiga1:", Date.now() - t0, "ms")
     await calculeazaToatePunctele()
-    console.log("calcPuncte:", Date.now() - t0, "ms")
     await autoCompleteEtape()
-    console.log("autoComplete:", Date.now() - t0, "ms")
     return NextResponse.json({ ok: true, message: "Sync complet" })
   } catch (err: any) {
     console.error("Eroare sync:", err)
