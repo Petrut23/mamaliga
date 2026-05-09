@@ -39,7 +39,7 @@ async function syncFootballData() {
     )
     const data = await res.json()
     if (!data.matches) return
-
+    console.log("Matches:", JSON.stringify(data.matches.map((m: any) => ({id: m.id, status: m.status, score: m.score})), null, 2)) 
     for (const apiMatch of data.matches) {
       const match = matches.find(m => m.externalApiId === String(apiMatch.id))
       if (!match) continue
