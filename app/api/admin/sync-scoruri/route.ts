@@ -394,3 +394,8 @@ export async function GET() {
     await autoCompleteEtape()
     console.log("autoComplete:", Date.now() - t0, "ms")
     return NextResponse.json({ ok: true, message: "Sync complet" })
+  } catch (err: any) {
+    console.error("Eroare sync:", err)
+    return NextResponse.json({ error: err.message }, { status: 500 })
+  }
+}
