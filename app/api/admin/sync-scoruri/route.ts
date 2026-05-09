@@ -28,27 +28,32 @@ async function syncFootballData() {
     }
   })
 
-  for (const match of matches) {
-    const compCode = COMPETITIONS[match.competitionName]
-    if (!compCode || !match.externalApiId) continue
-    try {
-      const res = await fetch(
-        `https://api.football-data.org/v4/matches/${match.externalApiId}`,
-        { headers: { "X-Auth-Token": process.env.FOOTBALL_DATA_API_KEY || "" } }
-      )
-      const data = await res.json()
-      if (!data.score) continue
+  if (matches.length === 0) return
 
-      const homeScore = data.score.fullTime?.home
-      const awayScore = data.score.fullTime?.away
-      const liveHome = data.score.fullTime?.home ?? data.score.regularTime?.home
-      const liveAway = data.score.fullTime?.away ?? data.score.regularTime?.away
+  const ids = matches.map(m => m.externalApiId).filter(Boolean).join(",")
+
+  try {
+    const res = await fetch(
+      `https://api.football-data.org/v4/matches?ids=${ids}`,
+      { headers: { "X-Auth-Token": process.env.FOOTBALL_DATA_API_KEY || "" } }
+    )
+    const data = await res.json()
+    if (!data.matches) return
+
+    for (const apiMatch of data.matches) {
+      const match = matches.find(m => m.externalApiId === String(apiMatch.id))
+      if (!match) continue
+
+      const homeScore = apiMatch.score.fullTime?.home
+      const awayScore = apiMatch.score.fullTime?.away
+      const liveHome = apiMatch.score.fullTime?.home ?? apiMatch.score.regularTime?.home
+      const liveAway = apiMatch.score.fullTime?.away ?? apiMatch.score.regularTime?.away
 
       let newStatus = match.status
-      if (data.status === "FINISHED") newStatus = "FINISHED"
-      else if (data.status === "IN_PLAY") newStatus = "LIVE"
-      else if (data.status === "PAUSED") newStatus = "HALFTIME"
-      else if (data.status === "TIMED" || data.status === "SCHEDULED") newStatus = "SCHEDULED"
+      if (apiMatch.status === "FINISHED") newStatus = "FINISHED"
+      else if (apiMatch.status === "IN_PLAY") newStatus = "LIVE"
+      else if (apiMatch.status === "PAUSED") newStatus = "HALFTIME"
+      else if (apiMatch.status === "TIMED" || apiMatch.status === "SCHEDULED") newStatus = "SCHEDULED"
 
       await prisma.match.update({
         where: { id: match.id },
@@ -61,9 +66,9 @@ async function syncFootballData() {
           lastSyncedAt: new Date()
         }
       })
-    } catch (err) {
-      console.error("Eroare sync match:", match.id, err)
     }
+  } catch (err) {
+    console.error("Eroare sync football-data:", err)
   }
 }
 
