@@ -119,30 +119,35 @@ async function syncLiga1() {
 }
 
 async function calculeazaToatePunctele() {
-  const finishedMatches = await prisma.match.findMany({
-    where: { status: "FINISHED", finalHomeScore: { not: null }, finalAwayScore: { not: null } },
-    include: { predictions: true }
-  })
-
-  for (const match of finishedMatches) {
-    if (match.finalHomeScore === null || match.finalAwayScore === null) continue
-    for (const pred of match.predictions) {
-      const basePoints = calculeazaPuncte(pred.predictedHome, pred.predictedAway, match.finalHomeScore, match.finalAwayScore)
-      const multiplier = pred.isCaptain ? 2 : 1
-      const totalPoints = basePoints * multiplier
-      await prisma.matchPoint.upsert({
-        where: { predictionId_matchId: { predictionId: pred.id, matchId: match.id } },
-        update: { basePoints, multiplier, totalPoints, isFinal: true, isLive: false, evaluatedAgainstHome: match.finalHomeScore, evaluatedAgainstAway: match.finalAwayScore, evaluatedAt: new Date() },
-        create: { predictionId: pred.id, matchId: match.id, basePoints, multiplier, totalPoints, isFinal: true, isLive: false, evaluatedAgainstHome: match.finalHomeScore, evaluatedAgainstAway: match.finalAwayScore, evaluatedAt: new Date() }
-      })
-    }
-  }
-
   const rounds = await prisma.round.findMany({
     where: { status: { in: ["LIVE", "LOCKED", "COMPLETED"] } }
   })
 
   for (const round of rounds) {
+    const finishedMatches = await prisma.match.findMany({
+      where: {
+        roundId: round.id,
+        status: "FINISHED",
+        finalHomeScore: { not: null },
+        finalAwayScore: { not: null }
+      },
+      include: { predictions: true }
+    })
+
+    for (const match of finishedMatches) {
+      if (match.finalHomeScore === null || match.finalAwayScore === null) continue
+      for (const pred of match.predictions) {
+        const basePoints = calculeazaPuncte(pred.predictedHome, pred.predictedAway, match.finalHomeScore, match.finalAwayScore)
+        const multiplier = pred.isCaptain ? 2 : 1
+        const totalPoints = basePoints * multiplier
+        await prisma.matchPoint.upsert({
+          where: { predictionId_matchId: { predictionId: pred.id, matchId: match.id } },
+          update: { basePoints, multiplier, totalPoints, isFinal: true, isLive: false, evaluatedAgainstHome: match.finalHomeScore, evaluatedAgainstAway: match.finalAwayScore, evaluatedAt: new Date() },
+          create: { predictionId: pred.id, matchId: match.id, basePoints, multiplier, totalPoints, isFinal: true, isLive: false, evaluatedAgainstHome: match.finalHomeScore, evaluatedAgainstAway: match.finalAwayScore, evaluatedAt: new Date() }
+        })
+      }
+    }
+
     const predictions = await prisma.prediction.findMany({
       where: { match: { roundId: round.id } },
       include: { matchPoints: true }
@@ -181,7 +186,6 @@ async function calculeazaToatePunctele() {
     }
   }
 }
-
 async function autoLockEtape() {
   const rounds = await prisma.round.findMany({ where: { status: "OPEN" } })
   for (const round of rounds) {
