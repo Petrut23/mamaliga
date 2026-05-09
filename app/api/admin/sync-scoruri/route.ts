@@ -382,14 +382,15 @@ async function sendDiscordPodium(roundId: string, roundTitle: string) {
 
 export async function GET() {
   try {
+    const t0 = Date.now()
     await autoLockEtape()
+    console.log("autoLock:", Date.now() - t0, "ms")
     await syncFootballData()
+    console.log("syncFootball:", Date.now() - t0, "ms")
     await syncLiga1()
+    console.log("syncLiga1:", Date.now() - t0, "ms")
     await calculeazaToatePunctele()
+    console.log("calcPuncte:", Date.now() - t0, "ms")
     await autoCompleteEtape()
+    console.log("autoComplete:", Date.now() - t0, "ms")
     return NextResponse.json({ ok: true, message: "Sync complet" })
-  } catch (err: any) {
-    console.error("Eroare sync:", err)
-    return NextResponse.json({ error: err.message }, { status: 500 })
-  }
-}
