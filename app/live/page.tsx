@@ -252,6 +252,7 @@ export default function LivePage() {
       setData(d)
       setLastSync(new Date())
       fetch("/api/admin/sync-scoruri").catch(() => {})
+      fetch("/api/admin/sync-puncte").catch(() => {})
     } catch (err) {
       console.error("Eroare fetch live:", err)
     } finally {
