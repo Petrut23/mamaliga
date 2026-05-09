@@ -124,15 +124,18 @@ async function calculeazaToatePunctele() {
   })
 
   for (const round of rounds) {
-    const finishedMatches = await prisma.match.findMany({
-      where: {
-        roundId: round.id,
-        status: "FINISHED",
-        finalHomeScore: { not: null },
-        finalAwayScore: { not: null }
-      },
-      include: { predictions: true }
-    })
+   const finishedMatches = await prisma.match.findMany({
+  where: {
+    roundId: round.id,
+    status: "FINISHED",
+    finalHomeScore: { not: null },
+    finalAwayScore: { not: null },
+    lastSyncedAt: {
+      gte: new Date(Date.now() - 24 * 60 * 60 * 1000)
+    }
+  },
+  include: { predictions: true }
+})
 
     for (const match of finishedMatches) {
       if (match.finalHomeScore === null || match.finalAwayScore === null) continue
