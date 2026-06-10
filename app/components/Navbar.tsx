@@ -18,6 +18,7 @@ export default function Navbar() {
     { href: "/rezultate", label: "Rezultate", icon: "📊" },
     { href: "/head-to-head", label: "H2H", icon: "⚔️" },
     { href: "/history", label: "History", icon: "📚" },
+    { href: "/world-cup", label: "World Cup", icon: "🏆" },
     { href: "/regulament", label: "Regulament", icon: "📜" },
   ]
 
