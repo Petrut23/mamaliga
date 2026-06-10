@@ -37,6 +37,7 @@ model Season {
 
   rounds          Round[]
   overallRankings OverallRanking[]
+  seasonRankings  SeasonRanking[]
 }
 
 model Round {
@@ -182,4 +183,19 @@ model UserBadge {
   user      User     @relation(fields: [userId], references: [id])
 
   @@unique([userId, badge])
+}
+model SeasonRanking {
+  id           String   @id @default(cuid())
+  seasonId     String
+  userId       String
+  totalPoints  Int      @default(0)
+  roundsPlayed Int      @default(0)
+  roundsWon    Int      @default(0)
+  average      Decimal  @default(0)
+  bestRound    Int      @default(0)
+  finalRank    Int      @default(0)
+  season       Season   @relation(fields: [seasonId], references: [id])
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([seasonId, userId])
 }
