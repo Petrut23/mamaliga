@@ -196,17 +196,32 @@ function MeciuriContent() {
             </div>
             {wcMatches.length > 0 && (
               <>
-                <div className="space-y-1 mb-4">
-                  {wcMatches.map((m: any) => (
-                    <div key={m.externalApiId} onClick={() => toggleWcMatch(m.externalApiId)}
-                      className={"flex items-center justify-between p-3 rounded-lg cursor-pointer border transition-colors " + (selectedWcMatches.includes(m.externalApiId) ? "bg-[#e8ff47]/10 border-[#e8ff47]/40" : "bg-[#0a0d14] border-[#1e2640] hover:border-gray-600")}>
-                      <div className="flex items-center gap-3">
-                        <div className={"w-4 h-4 rounded border-2 flex items-center justify-center " + (selectedWcMatches.includes(m.externalApiId) ? "border-[#e8ff47] bg-[#e8ff47]" : "border-gray-600")}>
-                          {selectedWcMatches.includes(m.externalApiId) && <span className="text-black text-xs font-bold">✓</span>}
-                        </div>
-                        <span className="font-semibold text-sm">🌍 {m.homeTeam} vs {m.awayTeam}</span>
+                <div className="space-y-4 mb-4">
+                  {Object.entries(wcMatches.reduce((acc: any, m: any) => {
+                    const g = m.groupName || "Alte meciuri"
+                    if (!acc[g]) acc[g] = []
+                    acc[g].push(m)
+                    return acc
+                  }, {})).map(([group, groupMatches]: any) => (
+                    <div key={group}>
+                      <div className="flex items-center gap-2 mb-2 px-1">
+                        <span className="text-sm">🌍</span>
+                        <span className="text-xs font-bold tracking-widest text-gray-400 uppercase">{group}</span>
                       </div>
-                      <span className="text-xs text-gray-500">{new Date(m.kickoffAt).toLocaleString("ro-RO")}</span>
+                      <div className="space-y-1">
+                        {groupMatches.map((m: any) => (
+                          <div key={m.externalApiId} onClick={() => toggleWcMatch(m.externalApiId)}
+                            className={"flex items-center justify-between p-3 rounded-lg cursor-pointer border transition-colors " + (selectedWcMatches.includes(m.externalApiId) ? "bg-[#e8ff47]/10 border-[#e8ff47]/40" : "bg-[#0a0d14] border-[#1e2640] hover:border-gray-600")}>
+                            <div className="flex items-center gap-3">
+                              <div className={"w-4 h-4 rounded border-2 flex items-center justify-center " + (selectedWcMatches.includes(m.externalApiId) ? "border-[#e8ff47] bg-[#e8ff47]" : "border-gray-600")}>
+                                {selectedWcMatches.includes(m.externalApiId) && <span className="text-black text-xs font-bold">✓</span>}
+                              </div>
+                              <span className="font-semibold text-sm">{m.homeTeam} vs {m.awayTeam}</span>
+                            </div>
+                            <span className="text-xs text-gray-500">{new Date(m.kickoffAt).toLocaleString("ro-RO")}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   ))}
                 </div>
