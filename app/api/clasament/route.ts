@@ -6,23 +6,24 @@ export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url)
     const seasonId = searchParams.get("seasonId")
-    const season = seasonId 
+    const season = seasonId
       ? await prisma.season.findUnique({ where: { id: seasonId } })
       : await prisma.season.findFirst({ where: { isActive: true } })
 
-    // Preia date istorice
-    const istoricRankings = await prisma.$queryRaw`
+    if (!season) return NextResponse.json({ rankings: [], season: null })
+
+    const istoricRankings = season.isActive ? await prisma.$queryRaw`
       SELECT hr.*, u.name, u.id as "userId"
       FROM "HistoricRanking" hr
       JOIN "User" u ON hr."userId" = u.id
-    ` as any[]
-
-    if (!season) return NextResponse.json({ rankings: [], season: null })
+    ` as any[] : []
 
     const rounds = await prisma.round.findMany({
       where: { seasonId: season.id, status: "COMPLETED" },
-
+      orderBy: { createdAt: "desc" }
+    })
     const roundIds = rounds.map(r => r.id)
+
     const roundRankings = roundIds.length > 0 ? await prisma.roundRanking.findMany({
       where: { roundId: { in: roundIds } },
       include: { user: { select: { id: true, name: true } } }
@@ -30,7 +31,6 @@ export async function GET(req: Request) {
 
     const userStats: any = {}
 
-    // Initializeaza cu date istorice
     for (const h of istoricRankings) {
       userStats[h.userId] = {
         name: h.name,
@@ -45,7 +45,6 @@ export async function GET(req: Request) {
       }
     }
 
-    // Adauga date din aplicatie
     for (const rr of roundRankings) {
       if (!userStats[rr.userId]) {
         userStats[rr.userId] = {
@@ -68,7 +67,6 @@ export async function GET(req: Request) {
       userStats[rr.userId].rankHistory[rr.roundId] = rr.rank
     }
 
-    // Forma recenta
     const lastRound = rounds[0]
     const prevRound = rounds[1]
     const formaRecenta: any = {}
