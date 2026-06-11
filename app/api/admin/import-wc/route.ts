@@ -26,6 +26,7 @@ export async function GET(req: NextRequest) {
       homeTeam: m.home_team,
       awayTeam: m.away_team,
       competitionName: "World Cup 2026",
+      groupName: m.group_name || null,
       kickoffAt: m.event_date,
     }))
 
