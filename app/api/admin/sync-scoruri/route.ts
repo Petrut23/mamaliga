@@ -117,6 +117,54 @@ async function syncLiga1() {
   }))
 }
 
+async function syncWorldCup() {
+  const matches = await prisma.match.findMany({
+    where: {
+      status: { in: ["SCHEDULED", "LIVE", "HALFTIME"] },
+      competitionName: "World Cup 2026"
+    }
+  })
+
+  if (matches.length === 0) return
+
+  await Promise.all(matches.map(async (match) => {
+    if (!match.externalApiId) return
+    try {
+      const res = await fetch(
+        `https://sports.bzzoiro.com/api/events/${match.externalApiId}/`,
+        { headers: { "Authorization": `Token ${process.env.BZZOIRO_API_KEY || ""}` } }
+      )
+      const data = await res.json()
+      if (!data.id) return
+
+      let newStatus = match.status
+      let liveHome = match.liveHomeScore
+      let liveAway = match.liveAwayScore
+      let finalHome = null
+      let finalAway = null
+
+      if (data.status === "finished") {
+        newStatus = "FINISHED"
+        finalHome = data.home_score
+        finalAway = data.away_score
+        liveHome = null
+        liveAway = null
+      } else if (data.status === "inprogress") {
+        newStatus = "LIVE"
+        liveHome = data.home_score
+        liveAway = data.away_score
+      }
+
+      await prisma.match.update({
+        where: { id: match.id },
+        data: { status: newStatus, liveHomeScore: liveHome, liveAwayScore: liveAway, finalHomeScore: finalHome, finalAwayScore: finalAway, lastSyncedAt: new Date() }
+      })
+    } catch (err) {
+      console.error("Eroare sync WC:", match.id, err)
+    }
+  }))
+}
+
 async function calculeazaToatePunctele() {
   const rounds = await prisma.round.findMany({
     where: { status: { in: ["LIVE", "LOCKED", "COMPLETED"] } }
@@ -218,6 +266,11 @@ async function sendDiscordPodium(roundId: string, roundTitle: string) {
   const webhookUrl = process.env.DISCORD_WEBHOOK_URL
   if (!webhookUrl) return
 
+  const round = await prisma.round.findUnique({ where: { id: roundId } })
+  const isWC = round?.seasonId === "ca080bd2-7691-4396-a123-5264ffaeceef"
+  const clasamentLink = isWC ? "https://mamaliga.vercel.app/world-cup/clasament" : "https://mamaliga.vercel.app/clasament"
+  const titlePrefix = isWC ? "🌍" : "🏆"
+
   const rankings = await prisma.roundRanking.findMany({
     where: { roundId },
     orderBy: [{ finalPoints: "desc" }, { exactHits: "desc" }],
@@ -276,13 +329,13 @@ async function sendDiscordPodium(roundId: string, roundTitle: string) {
 
   fields.push({
     name: "📊 Vezi clasamentul complet",
-    value: "[Intră pe MamaLIGA](https://mamaliga.vercel.app/clasament)",
+    value: "[Intră pe MamaLIGA](" + clasamentLink + ")",
     inline: false
   })
 
   const message = {
     embeds: [{
-      title: `🏆 ${roundTitle} s-a încheiat!`,
+      title: `${titlePrefix} ${roundTitle} s-a încheiat!`,
       description: `**Clasament etapă:**\n\n${clasamentText}`,
       color: 0xe8ff47,
       fields,
@@ -299,6 +352,9 @@ async function sendDiscordPodium(roundId: string, roundTitle: string) {
   } catch (err) {
     console.error("Eroare Discord podium:", err)
   }
+
+  // Clasamentul general nu se trimite pentru World Cup
+  if (isWC) return
 
   try {
     const season = await prisma.season.findFirst({ where: { isActive: true } })
@@ -381,6 +437,7 @@ export async function GET() {
     await autoLockEtape()
     await syncFootballData()
     await syncLiga1()
+    await syncWorldCup()
     await calculeazaToatePunctele()
     await autoCompleteEtape()
     return NextResponse.json({ ok: true, message: "Sync complet" })
