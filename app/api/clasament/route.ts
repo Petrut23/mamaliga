@@ -88,13 +88,21 @@ export async function GET(req: Request) {
         captain10: s.captain10, bestWeek: s.bestWeek,
         forma: formaRecenta[userId] || "same"
       }))
-      .sort((a, b) =>
-        b.wins - a.wins ||
-        b.total - a.total ||
-        b.bestWeek - a.bestWeek ||
-        b.rounds - a.rounds ||
-        a.name.localeCompare(b.name)
-      )
+     .sort((a, b) => {
+        const isWC = seasonId === "ca080bd2-7691-4396-a123-5264ffaeceef"
+        if (isWC) {
+          return b.total - a.total ||
+            b.exact - a.exact ||
+            b.diff - a.diff ||
+            b.result - a.result ||
+            a.name.localeCompare(b.name)
+        }
+        return b.wins - a.wins ||
+          b.total - a.total ||
+          b.bestWeek - a.bestWeek ||
+          b.rounds - a.rounds ||
+          a.name.localeCompare(b.name)
+      })
       .map((r, i) => ({ ...r, rank: i + 1 }))
 
     return NextResponse.json({ rankings, season })
