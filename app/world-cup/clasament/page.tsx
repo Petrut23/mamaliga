@@ -8,6 +8,7 @@ export default function WCClasamentPage() {
   const { data: session } = useSession()
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [expandedUser, setExpandedUser] = useState<string | null>(null)
 
   useEffect(() => {
     fetch("/api/clasament?seasonId=" + WC_SEASON_ID)
@@ -42,22 +43,43 @@ export default function WCClasamentPage() {
           <div className="space-y-2">
             {data.rankings.map((r: any, i: number) => {
               const isMe = session?.user?.name === r.name
+              const isExpanded = expandedUser === r.userId
               return (
-                <div key={r.userId} className={"rounded-xl border px-4 py-4 flex items-center gap-3 " + (isMe ? "bg-[#e8ff47]/05 border-[#e8ff47]/30" : i === 0 ? "bg-[#fbbf24]/05 border-[#fbbf24]/20" : "bg-[#111520] border-[#1e2640]")}>
-                  <div className={"text-2xl font-black w-10 text-center " + (i === 0 ? "text-[#fbbf24]" : i === 1 ? "text-gray-400" : i === 2 ? "text-amber-600" : "text-gray-600")}>
-                    {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : r.rank}
+                <div key={r.userId} className={"rounded-xl border transition-all " + (isMe ? "bg-[#e8ff47]/05 border-[#e8ff47]/30" : i === 0 ? "bg-[#fbbf24]/05 border-[#fbbf24]/20" : "bg-[#111520] border-[#1e2640]")}>
+                  <div className="px-4 py-4 flex items-center gap-3 cursor-pointer" onClick={() => setExpandedUser(isExpanded ? null : r.userId)}>
+                    <div className={"text-2xl font-black w-10 text-center " + (i === 0 ? "text-[#fbbf24]" : i === 1 ? "text-gray-400" : i === 2 ? "text-amber-600" : "text-gray-600")}>
+                      {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : r.rank}
+                    </div>
+                    <div className="flex-1">
+                      <span className={"font-bold " + (isMe ? "text-[#e8ff47]" : "text-white")}>{r.name} {isMe && <span className="text-xs font-normal text-gray-500">(tu)</span>}</span>
+                    </div>
+                    <div className="text-2xl font-black text-[#e8ff47]">{r.total}</div>
+                    <div className="text-xs text-gray-500">pct</div>
+                    <span className="text-gray-600 text-xs ml-1">{isExpanded ? "▲" : "▼"}</span>
                   </div>
-                  <div className="flex-1">
-                    <span className={"font-bold " + (isMe ? "text-[#e8ff47]" : "text-white")}>{r.name} {isMe && <span className="text-xs font-normal text-gray-500">(tu)</span>}</span>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-black text-[#e8ff47]">{r.wins}</div>
-                    <div className="text-xs text-gray-500">câștigate</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xl font-black text-white">{r.total}</div>
-                    <div className="text-xs text-gray-500">puncte</div>
-                  </div>
+
+                  {isExpanded && (
+                    <div className="border-t border-[#1e2640] px-4 py-3">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                        <div className="bg-[#0a0d14] rounded-lg p-2 text-center">
+                          <div className="text-lg font-black text-green-400">{r.exact}</div>
+                          <div className="text-xs text-gray-500">✅ Exacte</div>
+                        </div>
+                        <div className="bg-[#0a0d14] rounded-lg p-2 text-center">
+                          <div className="text-lg font-black text-yellow-400">{r.diff}</div>
+                          <div className="text-xs text-gray-500">🟡 Diferențe</div>
+                        </div>
+                        <div className="bg-[#0a0d14] rounded-lg p-2 text-center">
+                          <div className="text-lg font-black text-blue-400">{r.result}</div>
+                          <div className="text-xs text-gray-500">🔵 Rezultate</div>
+                        </div>
+                        <div className="bg-[#0a0d14] rounded-lg p-2 text-center">
+                          <div className="text-lg font-black text-amber-600">{r.captain}</div>
+                          <div className="text-xs text-gray-500">⭐ Căpitan</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )
             })}
