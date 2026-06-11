@@ -17,10 +17,10 @@ export async function GET(req: Request) {
       JOIN "User" u ON hr."userId" = u.id
     ` as any[]
 
+    if (!season) return NextResponse.json({ rankings: [], season: null })
+
     const rounds = await prisma.round.findMany({
       where: { seasonId: season.id, status: "COMPLETED" },
-      orderBy: { createdAt: "desc" }
-    })
 
     const roundIds = rounds.map(r => r.id)
     const roundRankings = roundIds.length > 0 ? await prisma.roundRanking.findMany({
