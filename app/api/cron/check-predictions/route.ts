@@ -16,7 +16,7 @@ export async function GET() {
     const now = new Date()
     const round = openRounds.find(r => {
       const mins = (new Date(r.deadlineAt).getTime() - now.getTime()) / (1000 * 60)
-      return mins >= 30 && mins <= 90
+      return mins >= 30 && mins <= 300
     })
 
     if (!round) return NextResponse.json({ message: "Nicio etapa in fereastra de reminder" })
