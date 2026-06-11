@@ -10,13 +10,12 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const { roundId, homeTeam, awayTeam, competitionName, kickoffAt, externalApiId, provider } = await req.json()
+  const { roundId, homeTeam, awayTeam, competitionName, kickoffAt, externalApiId, provider, groupName } = await req.json()
   const meci = await prisma.match.create({
-    data: { roundId, homeTeam, awayTeam, competitionName, kickoffAt: new Date(kickoffAt), externalApiId: externalApiId || null, provider: provider || null }
+    data: { roundId, homeTeam, awayTeam, competitionName, kickoffAt: new Date(kickoffAt), externalApiId: externalApiId || null, provider: provider || null, groupName: groupName || null }
   })
   return NextResponse.json({ meci }, { status: 201 })
 }
-
 export async function DELETE(req: NextRequest) {
   const id = req.nextUrl.searchParams.get("id")
   if (!id) return NextResponse.json({ error: "ID lipsa" }, { status: 400 })
