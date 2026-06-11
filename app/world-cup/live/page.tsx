@@ -46,6 +46,67 @@ function Countdown({ deadline }: { deadline: string }) {
   return <span className="font-black text-[#e8ff47]">{timeLeft}</span>
 }
 
+function MatchCard({ meci, data, expandedMatch, setExpandedMatch }: any) {
+  const allPreds = data.matchPredictions?.[meci.id] || []
+  const myPred = allPreds.find((p: any) => p.isMe)
+  const currentHome = meci.status === "FINISHED" ? meci.finalHomeScore : meci.liveHomeScore
+  const currentAway = meci.status === "FINISHED" ? meci.finalAwayScore : meci.liveAwayScore
+  const myPuncte = myPred && currentHome !== null && currentAway !== null
+    ? calcPuncte(myPred.home, myPred.away, currentHome, currentAway) * (myPred.isCaptain ? 2 : 1)
+    : null
+  const isExpanded = expandedMatch === meci.id
+
+  return (
+    <div className={"rounded-xl border transition-all " + (meci.status === "LIVE" || meci.status === "HALFTIME" ? "bg-red-500/05 border-red-500/20" : meci.status === "FINISHED" ? "bg-[#111520] border-[#1e2640] opacity-90" : "bg-[#111520] border-[#1e2640]")}>
+      <div className="px-4 py-3 cursor-pointer" onClick={() => setExpandedMatch(isExpanded ? null : meci.id)}>
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs text-gray-500">{new Date(meci.kickoffAt).toLocaleDateString("ro-RO", { weekday: "short", day: "2-digit", month: "short", timeZone: "Europe/Bucharest" })} {new Date(meci.kickoffAt).toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Bucharest" })}</span>
+          <div className="flex items-center gap-2">
+            <span className={"text-xs font-bold " + (meci.status === "LIVE" ? "text-red-400" : meci.status === "HALFTIME" ? "text-yellow-400" : meci.status === "FINISHED" ? "text-gray-500" : "text-blue-400")}>{STATUS_LABELS[meci.status] || meci.status}</span>
+            <span className="text-gray-600 text-xs">{isExpanded ? "▲" : "▼"}</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex-1 text-right font-bold text-sm">{meci.homeTeam}</div>
+          <div className="text-center min-w-20">
+            {meci.status === "SCHEDULED" ? <span className="text-gray-500 text-sm font-bold">vs</span>
+              : meci.status === "FINISHED" ? <span className="text-xl font-black">{meci.finalHomeScore} - {meci.finalAwayScore}</span>
+              : <span className="text-xl font-black text-red-400">{meci.liveHomeScore ?? 0} - {meci.liveAwayScore ?? 0}</span>}
+          </div>
+          <div className="flex-1 font-bold text-sm">{meci.awayTeam}</div>
+        </div>
+        {myPred && (
+          <div className="flex items-center mt-2 pt-2 border-t border-[#1e2640]/50">
+            <span className="w-5 flex-shrink-0 text-sm">{myPred.isCaptain ? "⭐" : ""}</span>
+            <span className="text-xs text-gray-400 w-20 flex-shrink-0">Tu:</span>
+            <span className="text-sm font-black text-[#e8ff47] w-12 flex-shrink-0">{myPred.home} - {myPred.away}</span>
+            {myPuncte !== null && meci.status !== "SCHEDULED" && <span className={"text-sm font-black ml-2 " + getPuncteColor(myPuncte)}>+{myPuncte}</span>}
+          </div>
+        )}
+      </div>
+      {isExpanded && (
+        <div className="border-t border-[#1e2640] px-4 py-3">
+          {allPreds.filter((p: any) => !p.isMe).length === 0 ? (
+            <div className="text-xs text-gray-600 italic py-2">Nicio alta predictie</div>
+          ) : allPreds.filter((p: any) => !p.isMe).map((pred: any, i: number) => {
+            const pts = currentHome !== null && currentAway !== null
+              ? calcPuncte(pred.home, pred.away, currentHome, currentAway) * (pred.isCaptain ? 2 : 1)
+              : null
+            return (
+              <div key={i} className="flex items-center py-1.5 px-1 border-b border-[#1e2640]/30 last:border-0">
+                <span className="w-5 flex-shrink-0 text-xs">{pred.isCaptain ? "⭐" : ""}</span>
+                <span className="text-xs text-gray-400 w-20 flex-shrink-0 truncate">{pred.userName}:</span>
+                <span className="text-sm font-bold text-white w-12 flex-shrink-0">{pred.home} - {pred.away}</span>
+                {pts !== null && meci.status !== "SCHEDULED" && <span className={"text-sm font-bold ml-2 " + getPuncteColor(pts)}>+{pts}</span>}
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function WCLivePage() {
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -86,6 +147,13 @@ export default function WCLivePage() {
     const upcomingMatches = data.matches.filter((m: any) => m.status === "SCHEDULED")
     const hasLive = liveMatches.length > 0 || upcomingMatches.length > 0
 
+    const groupedMatches = data.matches.reduce((acc: any, m: any) => {
+      const g = m.groupName || "Alte meciuri"
+      if (!acc[g]) acc[g] = []
+      acc[g].push(m)
+      return acc
+    }, {})
+
     return (
       <div className="min-h-screen bg-[#0a0d14] text-white">
         <div className="bg-[#111520] border-b border-[#1e2640] px-6 py-4">
@@ -105,67 +173,20 @@ export default function WCLivePage() {
           </div>
 
           {activeTab === "meciuri" && (
-            <div className="space-y-3">
-              {data.matches.map((meci: any) => {
-                const allPreds = data.matchPredictions?.[meci.id] || []
-                const myPred = allPreds.find((p: any) => p.isMe)
-                const currentHome = meci.status === "FINISHED" ? meci.finalHomeScore : meci.liveHomeScore
-                const currentAway = meci.status === "FINISHED" ? meci.finalAwayScore : meci.liveAwayScore
-                const myPuncte = myPred && currentHome !== null && currentAway !== null
-                  ? calcPuncte(myPred.home, myPred.away, currentHome, currentAway) * (myPred.isCaptain ? 2 : 1)
-                  : null
-                const isExpanded = expandedMatch === meci.id
-
-                return (
-                  <div key={meci.id} className={"rounded-xl border transition-all " + (meci.status === "LIVE" || meci.status === "HALFTIME" ? "bg-red-500/05 border-red-500/20" : meci.status === "FINISHED" ? "bg-[#111520] border-[#1e2640] opacity-90" : "bg-[#111520] border-[#1e2640]")}>
-                    <div className="px-4 py-3 cursor-pointer" onClick={() => setExpandedMatch(isExpanded ? null : meci.id)}>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs text-gray-500">{new Date(meci.kickoffAt).toLocaleDateString("ro-RO", { weekday: "short", day: "2-digit", month: "short", timeZone: "Europe/Bucharest" })} {new Date(meci.kickoffAt).toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Bucharest" })}</span>
-                        <div className="flex items-center gap-2">
-                          <span className={"text-xs font-bold " + (meci.status === "LIVE" ? "text-red-400" : meci.status === "HALFTIME" ? "text-yellow-400" : meci.status === "FINISHED" ? "text-gray-500" : "text-blue-400")}>{STATUS_LABELS[meci.status] || meci.status}</span>
-                          <span className="text-gray-600 text-xs">{isExpanded ? "▲" : "▼"}</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <div className="flex-1 text-right font-bold text-sm">{meci.homeTeam}</div>
-                        <div className="text-center min-w-20">
-                          {meci.status === "SCHEDULED" ? <span className="text-gray-500 text-sm font-bold">vs</span>
-                            : meci.status === "FINISHED" ? <span className="text-xl font-black">{meci.finalHomeScore} - {meci.finalAwayScore}</span>
-                            : <span className="text-xl font-black text-red-400">{meci.liveHomeScore ?? 0} - {meci.liveAwayScore ?? 0}</span>}
-                        </div>
-                        <div className="flex-1 font-bold text-sm">{meci.awayTeam}</div>
-                      </div>
-                      {myPred && (
-                        <div className="flex items-center mt-2 pt-2 border-t border-[#1e2640]/50">
-                          <span className="w-5 flex-shrink-0 text-sm">{myPred.isCaptain ? "⭐" : ""}</span>
-                          <span className="text-xs text-gray-400 w-20 flex-shrink-0">Tu:</span>
-                          <span className="text-sm font-black text-[#e8ff47] w-12 flex-shrink-0">{myPred.home} - {myPred.away}</span>
-                          {myPuncte !== null && meci.status !== "SCHEDULED" && <span className={"text-sm font-black ml-2 " + getPuncteColor(myPuncte)}>+{myPuncte}</span>}
-                        </div>
-                      )}
-                    </div>
-                    {isExpanded && (
-                      <div className="border-t border-[#1e2640] px-4 py-3">
-                        {allPreds.filter((p: any) => !p.isMe).length === 0 ? (
-                          <div className="text-xs text-gray-600 italic py-2">Nicio alta predictie</div>
-                        ) : allPreds.filter((p: any) => !p.isMe).map((pred: any, i: number) => {
-                          const pts = currentHome !== null && currentAway !== null
-                            ? calcPuncte(pred.home, pred.away, currentHome, currentAway) * (pred.isCaptain ? 2 : 1)
-                            : null
-                          return (
-                            <div key={i} className="flex items-center py-1.5 px-1 border-b border-[#1e2640]/30 last:border-0">
-                              <span className="w-5 flex-shrink-0 text-xs">{pred.isCaptain ? "⭐" : ""}</span>
-                              <span className="text-xs text-gray-400 w-20 flex-shrink-0 truncate">{pred.userName}:</span>
-                              <span className="text-sm font-bold text-white w-12 flex-shrink-0">{pred.home} - {pred.away}</span>
-                              {pts !== null && meci.status !== "SCHEDULED" && <span className={"text-sm font-bold ml-2 " + getPuncteColor(pts)}>+{pts}</span>}
-                            </div>
-                          )
-                        })}
-                      </div>
-                    )}
+            <div className="space-y-6">
+              {Object.entries(groupedMatches).map(([group, groupMatches]: any) => (
+                <div key={group}>
+                  <div className="flex items-center gap-2 mb-3 px-1">
+                    <span className="text-lg">🌍</span>
+                    <span className="text-xs font-bold tracking-widest text-gray-400 uppercase">{group}</span>
                   </div>
-                )
-              })}
+                  <div className="space-y-3">
+                    {groupMatches.map((meci: any) => (
+                      <MatchCard key={meci.id} meci={meci} data={data} expandedMatch={expandedMatch} setExpandedMatch={setExpandedMatch} />
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 
