@@ -14,6 +14,16 @@ export async function GET() {
     const totalMatches = round.matches.length
     if (totalMatches === 0) return NextResponse.json({ message: "Etapa fara meciuri" })
 
+    // Verifica daca mai e aproximativ o ora pana la deadline
+    const now = new Date()
+    const deadlineTime = new Date(round.deadlineAt)
+    const minutesUntilDeadline = (deadlineTime.getTime() - now.getTime()) / (1000 * 60)
+
+    // Trimite reminder doar daca mai sunt intre 30 si 90 minute pana la deadline
+    if (minutesUntilDeadline < 30 || minutesUntilDeadline > 90) {
+      return NextResponse.json({ message: `Nu e momentul (${Math.round(minutesUntilDeadline)} min pana la deadline)` })
+    }
+
     const matchIds = round.matches.map(m => m.id)
 
     const users = await prisma.user.findMany({
