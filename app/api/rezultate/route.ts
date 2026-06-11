@@ -4,13 +4,22 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/pages/api/auth/[...nextauth]"
 export const dynamic = "force-dynamic"
 
-export async function GET() {
+const WC_SEASON_ID = "ca080bd2-7691-4396-a123-5264ffaeceef"
+
+export async function GET(req: Request) {
   const session = await getServerSession(authOptions)
   if (!session) return NextResponse.json({ error: "Neautentificat" }, { status: 401 })
   const userId = (session.user as any).id
 
+  const { searchParams } = new URL(req.url)
+  const isWC = searchParams.get("wc") === "1"
+
+  const seasonFilter = isWC
+    ? { seasonId: WC_SEASON_ID }
+    : { seasonId: { not: WC_SEASON_ID } }
+
   const rounds = await prisma.round.findMany({
-    where: { status: { in: ["COMPLETED", "LIVE", "LOCKED"] } },
+    where: { status: { in: ["COMPLETED", "LIVE", "LOCKED"] }, ...seasonFilter },
     orderBy: { createdAt: "desc" },
     include: {
       matches: {
