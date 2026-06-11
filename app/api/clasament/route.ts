@@ -2,10 +2,13 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 export const dynamic = "force-dynamic"
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const season = await prisma.season.findFirst({ where: { isActive: true } })
-    if (!season) return NextResponse.json({ rankings: [], season: null })
+    const { searchParams } = new URL(req.url)
+    const seasonId = searchParams.get("seasonId")
+    const season = seasonId 
+      ? await prisma.season.findUnique({ where: { id: seasonId } })
+      : await prisma.season.findFirst({ where: { isActive: true } })
 
     // Preia date istorice
     const istoricRankings = await prisma.$queryRaw`
