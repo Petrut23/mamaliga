@@ -1,38 +1,18 @@
 "use client"
 import { useState, useEffect } from "react"
+import { useSession } from "next-auth/react"
 
 const WC_SEASON_ID = "ca080bd2-7691-4396-a123-5264ffaeceef"
 
-function getPointsColor(points: number | null) {
-  if (points === null) return "text-gray-500"
-  if (points >= 8) return "text-green-400"
-  if (points >= 4) return "text-yellow-400"
-  if (points >= 2) return "text-blue-400"
-  if (points === 0) return "text-red-400"
-  return "text-gray-400"
-}
-
-function getResultLabel(base: number | null) {
-  if (base === null) return ""
-  if (base === 5) return "✅ Exact"
-  if (base === 2) return "🟡 Diferenta"
-  if (base === 1) return "🔵 Rezultat"
-  return "❌ Gresit"
-}
-
-export default function WCRezultatePage() {
-  const [rounds, setRounds] = useState<any[]>([])
+export default function WCClasamentPage() {
+  const { data: session } = useSession()
+  const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  const [openRound, setOpenRound] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch("/api/rezultate?seasonId=" + WC_SEASON_ID)
+    fetch("/api/clasament?seasonId=" + WC_SEASON_ID)
       .then(r => r.json())
-      .then(d => {
-        setRounds(d.rounds || [])
-        if (d.rounds?.length > 0) setOpenRound(d.rounds[0].id)
-        setLoading(false)
-      })
+      .then(d => { setData(d); setLoading(false) })
   }, [])
 
   if (loading) return (
@@ -46,70 +26,41 @@ export default function WCRezultatePage() {
       <div className="bg-[#111520] border-b border-[#1e2640] px-6 py-5">
         <div className="max-w-3xl mx-auto">
           <div className="text-xs font-bold tracking-widest text-[#e8ff47] uppercase mb-1">🌍 World Cup 2026</div>
-          <div className="text-3xl font-black">Rezultatele Mele</div>
+          <div className="text-3xl font-black">Clasament General</div>
         </div>
       </div>
 
       <div className="max-w-3xl mx-auto px-4 py-6">
-        {rounds.length === 0 ? (
+        {!data?.rankings || data.rankings.length === 0 ? (
           <div className="text-center py-20">
             <div className="text-5xl mb-4">🌍</div>
-            <div className="text-lg font-bold text-white mb-2">Niciun rezultat inca</div>
-            <div className="text-sm text-gray-500 mb-6">Rezultatele apar dupa finalizarea primei etape WC</div>
+            <div className="text-lg font-bold text-white mb-2">Niciun clasament inca</div>
+            <div className="text-sm text-gray-500 mb-6">Clasamentul apare dupa finalizarea primei etape WC</div>
             <a href="/world-cup" className="text-[#e8ff47] hover:underline text-sm">← Inapoi la World Cup</a>
           </div>
         ) : (
-          <div className="space-y-4">
-            {rounds.map(round => (
-              <div key={round.id} className="bg-[#111520] border border-[#1e2640] rounded-xl overflow-hidden">
-                <button onClick={() => setOpenRound(openRound === round.id ? null : round.id)}
-                  className="w-full px-5 py-4 flex items-center justify-between hover:bg-[#1a2035] transition-colors">
-                  <div className="text-left">
-                    <div className="font-bold text-white">{round.title}</div>
-                    <div className="text-xs text-gray-500 mt-0.5">{round.matches.length} meciuri</div>
+          <div className="space-y-2">
+            {data.rankings.map((r: any, i: number) => {
+              const isMe = session?.user?.name === r.name
+              return (
+                <div key={r.userId} className={"rounded-xl border px-4 py-4 flex items-center gap-3 " + (isMe ? "bg-[#e8ff47]/05 border-[#e8ff47]/30" : i === 0 ? "bg-[#fbbf24]/05 border-[#fbbf24]/20" : "bg-[#111520] border-[#1e2640]")}>
+                  <div className={"text-2xl font-black w-10 text-center " + (i === 0 ? "text-[#fbbf24]" : i === 1 ? "text-gray-400" : i === 2 ? "text-amber-600" : "text-gray-600")}>
+                    {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : r.rank}
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="text-right">
-                      <div className="text-2xl font-black text-[#e8ff47]">{round.totalPoints}</div>
-                      <div className="text-xs text-gray-500">puncte</div>
-                    </div>
-                    <span className="text-gray-500">{openRound === round.id ? "▲" : "▼"}</span>
+                  <div className="flex-1">
+                    <span className={"font-bold " + (isMe ? "text-[#e8ff47]" : "text-white")}>{r.name} {isMe && <span className="text-xs font-normal text-gray-500">(tu)</span>}</span>
                   </div>
-                </button>
-                {openRound === round.id && (
-                  <div className="border-t border-[#1e2640]">
-                    {round.matches.map((meci: any) => (
-                      <div key={meci.id} className="px-5 py-3 border-b border-[#1e2640]/50 last:border-0">
-                        <div className="flex items-center gap-2">
-                          <span className="flex-1 text-right text-sm font-semibold">{meci.homeTeam}</span>
-                          <div className="text-center min-w-24">
-                            {meci.status === "FINISHED" ? (
-                              <span className="text-sm font-black">{meci.finalHomeScore} - {meci.finalAwayScore}</span>
-                            ) : (
-                              <span className="text-xs text-gray-500">{new Date(meci.kickoffAt).toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" })}</span>
-                            )}
-                          </div>
-                          <span className="flex-1 text-sm font-semibold">{meci.awayTeam}</span>
-                        </div>
-                        {meci.prediction && (
-                          <div className="mt-2 flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              {meci.prediction.isCaptain && <span className="text-xs">⭐</span>}
-                              <span className="text-xs text-gray-400">Predictia ta:</span>
-                              <span className="text-xs font-bold text-[#e8ff47]">{meci.prediction.predictedHome} - {meci.prediction.predictedAway}</span>
-                            </div>
-                            {meci.status === "FINISHED" && (
-                              <span className="text-xs">{getResultLabel(meci.prediction.basePoints)}</span>
-                            )}
-                          </div>
-                        )}
-                        {!meci.prediction && <div className="mt-1 text-xs text-gray-600 italic">Fara predictie</div>}
-                      </div>
-                    ))}
+                  <div className="text-right">
+                    <div className="text-2xl font-black text-[#e8ff47]">{r.wins}</div>
+                    <div className="text-xs text-gray-500">câștigate</div>
                   </div>
-                )}
-              </div>
-            ))}
+                  <div className="text-right">
+                    <div className="text-xl font-black text-white">{r.total}</div>
+                    <div className="text-xs text-gray-500">puncte</div>
+                  </div>
+                </div>
+              )
+            })}
           </div>
         )}
       </div>
