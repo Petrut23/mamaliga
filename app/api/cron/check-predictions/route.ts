@@ -4,12 +4,25 @@ export const dynamic = "force-dynamic"
 
 export async function GET() {
   try {
-    const round = await prisma.round.findFirst({
+    const WC_SEASON_ID = "ca080bd2-7691-4396-a123-5264ffaeceef"
+
+    const openRounds = await prisma.round.findMany({
       where: { status: "OPEN" },
       include: { matches: true }
     })
 
-    if (!round) return NextResponse.json({ message: "Nicio etapa OPEN" })
+    if (openRounds.length === 0) return NextResponse.json({ message: "Nicio etapa OPEN" })
+
+    const now0 = new Date()
+    const round = openRounds.find(r => {
+      const mins = (new Date(r.deadlineAt).getTime() - now0.getTime()) / (1000 * 60)
+      return mins >= 30 && mins <= 90
+    })
+
+    if (!round) return NextResponse.json({ message: "Nicio etapa in fereastra de reminder" })
+
+    const isWC = round.seasonId === WC_SEASON_ID
+    const predictiiLink = isWC ? "https://mamaliga.vercel.app/world-cup/predictii" : "https://mamaliga.vercel.app/predictii"
 
     const totalMatches = round.matches.length
     if (totalMatches === 0) return NextResponse.json({ message: "Etapa fara meciuri" })
