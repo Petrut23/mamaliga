@@ -161,11 +161,22 @@ export default function WCPredictiiPage() {
           </div>
         )}
 
-        <div className="space-y-2">
-          {matches.map((meci: any) => {
-            const pred = predictions[meci.id] || { home: "", away: "" }
-            const isCap = captain === meci.id
-            return (
+        {Object.entries(matches.reduce((acc: any, m: any) => {
+          const g = m.groupName || "Alte meciuri"
+          if (!acc[g]) acc[g] = []
+          acc[g].push(m)
+          return acc
+        }, {})).map(([group, groupMatches]: any) => (
+          <div key={group} className="mb-6">
+            <div className="flex items-center gap-2 px-2 py-2 mb-2">
+              <span className="text-lg">🌍</span>
+              <span className="text-xs font-bold tracking-widest text-gray-400 uppercase">{group}</span>
+            </div>
+            <div className="space-y-2">
+              {groupMatches.map((meci: any) => {
+                const pred = predictions[meci.id] || { home: "", away: "" }
+                const isCap = captain === meci.id
+                return (
               <div key={meci.id} className={"rounded-xl border px-4 py-3 transition-all " + (isCap ? "bg-[#fbbf24]/05 border-[#fbbf24]/30" : "bg-[#111520] border-[#1e2640]")}>
                 <div className="text-xs text-gray-500 mb-2">{new Date(meci.kickoffAt).toLocaleString("ro-RO", { weekday: "short", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</div>
                 <div className="flex items-center gap-3">
@@ -182,7 +193,9 @@ export default function WCPredictiiPage() {
               </div>
             )
           })}
-        </div>
+            </div>
+          </div>
+        ))}
       </div>
 
       {!isLocked && (
