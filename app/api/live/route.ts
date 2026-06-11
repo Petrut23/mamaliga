@@ -82,23 +82,27 @@ function buildRankingsAndStats(predictions: any[], matches: any[], myId: string)
   return { rankings, matchPredictions, matchStats }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const { searchParams } = new URL(req.url)
+    const seasonId = searchParams.get("seasonId")
     const session = await getServerSession(authOptions)
     const myId = (session?.user as any)?.id
 
+    const seasonFilter = seasonId ? { seasonId } : {}
+
     const activeRound = await prisma.round.findFirst({
-      where: { status: { in: ["LOCKED", "LIVE"] } },
+      where: { status: { in: ["LOCKED", "LIVE"] }, ...seasonFilter },
       orderBy: { createdAt: "desc" }
     })
 
     const nextRound = await prisma.round.findFirst({
-      where: { status: { in: ["OPEN", "DRAFT"] } },
+      where: { status: { in: ["OPEN", "DRAFT"] }, ...seasonFilter },
       orderBy: { createdAt: "desc" }
     })
 
     const previousRound = await prisma.round.findFirst({
-      where: { status: "COMPLETED" },
+      where: { status: "COMPLETED", ...seasonFilter },
       orderBy: { createdAt: "desc" }
     })
 
